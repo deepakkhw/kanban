@@ -1,0 +1,21 @@
+{
+  "name": "Kanban Board",
+  "short_name": "Kanban",
+  "description": "Simple Kanban Board with Keyboard Shortcuts and Enhanced UI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#23242a",
+  "theme_color": "#3399ff",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
