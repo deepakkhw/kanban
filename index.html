@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#3399ff" />
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kanban Board - Keyboard Shortcuts & Enhanced UI</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#3399ff" />
 <style>
   :root {
     --bg: #23242a;
@@ -179,6 +179,23 @@
   .desc-cancel:hover {background:#bb281b;}
   #snackbar { visibility:hidden; min-width:170px; background:#383c4c; color:#f3c05c; text-align:left; border-radius:7px; padding:9px 18px; position:fixed;z-index:50; right:32px;bottom:36px;font-size:1em;font-weight:500; box-shadow:0 2px 12px #000a;}
   #snackbar.show{visibility:visible;animation:fadein 0.4s,fadeout 0.9s 2.3s;}
+  #emptyNote {
+    color: #ffc95c;
+    background-color: #333844;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    text-align: center;
+    font-weight: 600;
+  }
+  #privacyNotice {
+    font-size: 0.9em;
+    color: #999;
+    text-align: center;
+    padding: 10px;
+    margin-top: 12px;
+    user-select: none;
+  }
   @keyframes fadein { from{bottom:0;opacity:0;} to{bottom:36px;opacity:1;} }
   @keyframes fadeout { from{bottom:36px;opacity:1;} to{bottom:0;opacity:0;} }
   #importFile{display:none;}
@@ -257,19 +274,19 @@
       <button type="submit" class="add-btn-inner">Add Task</button>
     </form>
   </div>
+  <div id="emptyNote" style="display:none;"></div>
   <div class="board">
     <div class="column" id="todo"><h2>To Do</h2></div>
     <div class="column" id="inprogress"><h2>In Progress</h2></div>
     <div class="column" id="done"><h2>Done</h2></div>
   </div>
 </div>
+
 <div id="snackbar"></div>
+<div id="privacyNotice">
+  Your data is yours. We do not sync, store, or keep your backup files. You control your own task data.
+</div>
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-  .then(() => console.log('Service Worker Registered'))
-  .catch(err => console.error('Service Worker registration failed:', err));
-}
 const columns = {
   todo: document.getElementById('todo'),
   inprogress: document.getElementById('inprogress'),
@@ -310,6 +327,7 @@ function saveTasks() {
     });
   });
   localStorage.setItem('kanbanTasks', JSON.stringify(allTasks));
+  checkEmptyAndShowRestoreNote();
 }
 function loadTasks() {
   Object.values(columns).forEach(col => col.innerHTML = '<h2>' + col.querySelector('h2').textContent + '</h2>');
@@ -321,6 +339,7 @@ function loadTasks() {
       columns[t.column].appendChild(task);
     });
   } catch(e) {console.error('Error loading tasks', e);}
+  checkEmptyAndShowRestoreNote();
 }
 function displayTags(tagContainer, tags, onUpdate) {
   tagContainer.innerHTML = '';
@@ -379,7 +398,6 @@ function createTaskElement(name, description, priority, tags, column, createdDat
     <div class="dates">Created: ${formatDate(createdDate)} | Moved: ${formatDate(movedDate)} (${priority.charAt(0).toUpperCase()})</div>
   `;
 
-// Description form vars
   let descFormInstance = null;
 
   function removeDescForm() {
@@ -530,7 +548,6 @@ document.getElementById('importFile').onchange = function(evt) {
   reader.onload = function(e) {
     try {
       const json = JSON.parse(e.target.result);
-      // Basic validation for array and required fields
       if (!Array.isArray(json) || !json.every(t => t.name && t.column)) {
         alert('Error: Invalid file or content.');
         return;
@@ -539,6 +556,7 @@ document.getElementById('importFile').onchange = function(evt) {
       Object.values(columns).forEach(col => col.innerHTML = '<h2>' + col.querySelector('h2').textContent + '</h2>');
       loadTasks();
       showNotification('Kanban tasks have been restored!');
+      checkEmptyAndShowRestoreNote();
     } catch (err) {
       alert('Error: Invalid file or content.');
     }
@@ -565,7 +583,6 @@ document.getElementById('taskSearch').addEventListener('input', function(e){
   const term = e.target.value.trim().toLowerCase();
   searchTimeout = setTimeout(() => {
     if(!term) {
-      // Show all tasks if search is empty
       Object.values(columns).forEach(col => {
         [...col.children].forEach(taskElem => {
           if(taskElem.tagName === 'H2') return;
@@ -676,20 +693,19 @@ function editSelectedTaskDescription() {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
 
-  // Use Ctrl+Alt+N for Add Task box toggle (avoiding browser Ctrl+N)
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'n') {
     e.preventDefault();
     addBoxVisible = true;
     taskFormBox.hidden = false;
     addBoxBtn.title = "Hide Add Task Box";
     document.getElementById('taskName').focus();
-  } else if (e.ctrlKey && e.key.toLowerCase() === 's') { // Ctrl+S export
+  } else if (e.ctrlKey && e.key.toLowerCase() === 's') {
     e.preventDefault();
     document.getElementById('exportBtn').click();
-  } else if (e.ctrlKey && e.key.toLowerCase() === 'o') { // Ctrl+O import
+  } else if (e.ctrlKey && e.key.toLowerCase() === 'o') {
     e.preventDefault();
     document.getElementById('importBtn').click();
-  } else if (e.key === '/') { // Slash to search
+  } else if (e.key === '/') {
     e.preventDefault();
     document.getElementById('taskSearch').focus();
   } else if (e.key === 'ArrowDown') {
@@ -719,6 +735,43 @@ document.addEventListener('keydown', e => {
       moveSelectedTaskLeft();
     }
   }
+});
+
+// Show or hide note when all lists empty
+function checkEmptyAndShowRestoreNote() {
+  const allEmpty = Object.values(columns).every(col => [...col.children].filter(t => t.tagName !== 'H2').length === 0);
+  const noteElem = document.getElementById('emptyNote');
+  if (allEmpty) {
+    noteElem.style.display = 'block';
+    noteElem.textContent = 'All task lists are empty. You can restore tasks from a backup file using the Restore button above.';
+  } else {
+    noteElem.style.display = 'none';
+  }
+}
+
+// Auto download backup JSON file
+function autoDownloadBackup() {
+  const data = localStorage.getItem('kanbanTasks');
+  if (!data) return;
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kanbanTasks_backup.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  console.log('Auto backup downloaded');
+}
+
+// Set interval to auto-download backup every 4 hours
+setInterval(autoDownloadBackup, 4 * 60 * 60 * 1000); // every 4 hours
+
+// Try to auto-download backup on browser close - may be blocked by some browsers
+window.addEventListener('beforeunload', function () {
+  saveTasks();
+  autoDownloadBackup();
 });
 
 window.addEventListener('load', loadTasks);
