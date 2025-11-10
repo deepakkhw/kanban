@@ -78,7 +78,7 @@
   .mini-btn svg {width:18px;height:18px;display:block;}
   .board-title-wrap { flex:1; text-align:center;}
   h1 { font-size:2.1em;margin:0 0 7px 0;letter-spacing:1px;color:var(--highlight); font-weight:700; }
-  .kanban-wrap { width:98vw;max-width:1330px;margin:0 auto 1em auto;display:flex;flex-direction:column;align-items:center;}
+  .kanban-wrap { width:98vw;max-width:1330px;margin:0 auto 1em auto;display:flex;flex-direction:column;align-items:center;position:relative;}
   .task-form-container { width:100%;max-width:720px;position:relative;margin-bottom:16px;}
   .task-form-container[hidden] {display:none;}
   form {
@@ -89,6 +89,7 @@
     margin:0 auto;
     padding:13px 12px 9px 12px;
     display:flex;gap:9px 0;flex-wrap:wrap;align-items: flex-end;justify-content:flex-start;
+    position: relative;
   }
   .kanban-wrap label { font-size:0.93em;color:#aab3c6;display:block;margin-bottom:1.5px;}
   input[type="text"], textarea, select {
@@ -242,8 +243,8 @@
 </div>
 <div class="kanban-wrap">
   <div class="task-form-container" id="taskFormContainer" hidden>
-    <form id="taskForm">
-      <div class="form-group">
+    <form id="taskForm" autocomplete="off" novalidate>
+      <div class="form-group" style="position: relative;">
         <label for="taskName">Task Name</label>
         <input type="text" id="taskName" placeholder="e.g. Review PR" required autocomplete="off" />
       </div>
@@ -259,9 +260,9 @@
           <option value="high">High</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="position: relative;">
         <label for="taskTags">Tags</label>
-        <input type="text" id="taskTags" placeholder="bug, feature, urgent" autocomplete="off"/>
+        <input type="text" id="taskTags" placeholder="Start typing tags…" autocomplete="off"/>
       </div>
       <div class="form-group">
         <label for="taskColumn">Column</label>
@@ -526,6 +527,8 @@ document.getElementById('taskForm').addEventListener('submit', e => {
     showNotification(`"${name}" added to [${column}]${tags ? '\nTags: ' + tags : ''}`);
     e.target.reset();
     saveTasks();
+    // Clear tag suggestions on add
+    hideTagDropdown();
   }
 });
 
@@ -769,13 +772,107 @@ function autoDownloadBackup() {
 setInterval(autoDownloadBackup, 4 * 60 * 60 * 1000); // every 4 hours
 
 // Try to auto-download backup on browser close - may be blocked by some browsers
-//window.addEventListener('beforeunload', function () {
-  //saveTasks();
-  //autoDownloadBackup();
-//});
+window.addEventListener('beforeunload', function () {
+  saveTasks();
+  autoDownloadBackup();
+});
 
-window.addEventListener('load', loadTasks);
+// Tag autocomplete dropdown logic
+function getAllTags() {
+  const tasks = JSON.parse(localStorage.getItem('kanbanTasks')) || [];
+  const tagSet = new Set();
+  tasks.forEach(t => {
+    (t.tags || '').split(',').forEach(tag => {
+      const trimmed = tag.trim();
+      if (trimmed) tagSet.add(trimmed);
+    });
+  });
+  return Array.from(tagSet).sort();
+}
+
+const tagInput = document.getElementById('taskTags');
+
+const tagDropdown = document.createElement('div');
+tagDropdown.style.position = 'absolute';
+tagDropdown.style.background = '#222938';
+tagDropdown.style.zIndex = '10';
+tagDropdown.style.boxShadow = '0 2px 8px #1318';
+tagDropdown.style.display = 'none';
+tagDropdown.style.minWidth = '180px';
+tagDropdown.style.borderRadius = '6px';
+tagDropdown.style.padding = '6px 0';
+tagDropdown.style.maxHeight = '170px';
+tagDropdown.style.overflowY = 'auto';
+tagDropdown.style.fontSize = '1em';
+tagDropdown.style.color = '#cfe6fa';
+
+tagInput.parentElement.appendChild(tagDropdown);
+
+function hideTagDropdown() {
+  tagDropdown.style.display = 'none';
+}
+
+tagInput.addEventListener('focus', showTagSuggestions);
+tagInput.addEventListener('input', showTagSuggestions);
+
+function showTagSuggestions() {
+  const currentTags = tagInput.value.split(',').map(t => t.trim()).filter(Boolean);
+  const allTags = getAllTags();
+  const inputPart = tagInput.value.split(',').pop().trim().toLowerCase();
+  const filtered = allTags.filter(tag => 
+    tag.toLowerCase().startsWith(inputPart) &&
+    !currentTags.includes(tag)
+  );
+  tagDropdown.innerHTML = '';
+  if (filtered.length > 0 && inputPart !== '') {
+    filtered.forEach(tag => {
+      const item = document.createElement('div');
+      item.textContent = tag;
+      item.style.padding = '7px 15px';
+      item.style.cursor = 'pointer';
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        let tagsArr = tagInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        tagsArr.pop(); // remove current input part
+        tagsArr.push(tag);
+        tagInput.value = tagsArr.join(', ') + ', ';
+        hideTagDropdown();
+        tagInput.focus();
+      });
+      tagDropdown.appendChild(item);
+    });
+    tagDropdown.style.display = 'block';
+    const rect = tagInput.getBoundingClientRect();
+    tagDropdown.style.left = '0px';
+    tagDropdown.style.top = `${tagInput.offsetHeight + 2}px`;
+  } else {
+    hideTagDropdown();
+  }
+}
+
+tagInput.addEventListener('blur', () => setTimeout(() => hideTagDropdown(), 120));
+
+// 30-minute notifications for To-Do and In-Progress
+function notifyTaskSummary() {
+  let allTasks = JSON.parse(localStorage.getItem('kanbanTasks')) || [];
+  let pending = allTasks.filter(t => t.column === 'todo' || t.column === 'inprogress');
+  if (pending.length > 0 && window.Notification && Notification.permission === "granted") {
+    let body = pending.map(t => `[${t.column === 'todo' ? 'To-Do' : 'In Progress'}] ${t.name}`).join('\n');
+    new Notification("Kanban Board Reminder", { body });
+  } else if (window.Notification && Notification.permission !== "denied") {
+    Notification.requestPermission();
+  }
+}
+
+// Prompt notification permission on load and start the 30-min interval
+window.addEventListener('load', () => {
+  if (window.Notification && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+  loadTasks();
+  checkEmptyAndShowRestoreNote();
+  setInterval(notifyTaskSummary, 30 * 60 * 1000); // every 30 mins
+});
 </script>
 </body>
 </html>
-
