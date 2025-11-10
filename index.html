@@ -772,10 +772,10 @@ function autoDownloadBackup() {
 setInterval(autoDownloadBackup, 4 * 60 * 60 * 1000); // every 4 hours
 
 // Try to auto-download backup on browser close - may be blocked by some browsers
-window.addEventListener('beforeunload', function () {
-  saveTasks();
-  autoDownloadBackup();
-});
+// window.addEventListener('beforeunload', function () {
+//  saveTasks();
+ // autoDownloadBackup();
+//});
 
 // Tag autocomplete dropdown logic
 function getAllTags() {
@@ -876,3 +876,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
