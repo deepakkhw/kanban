@@ -3,66 +3,44 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kanban Board with Alarms & Archive</title>
-<style>
-  /* Minimal styling to keep it concise and readable */
-  body { font-family: Arial, sans-serif; background: #23242a; color: #f4f7fa; margin: 20px; }
-  h1 { color: #3399ff; text-align: center; }
-  form { background: #282934; padding: 15px; border-radius: 8px; max-width: 500px; margin: 0 auto 20px; }
-  label { display: block; margin: 10px 0 5px; }
-  input, textarea, select { width: 100%; padding: 7px; border-radius: 5px; border: none; background: #25293c; color: #f4f7fa; }
-  button { margin-top: 12px; padding: 10px 16px; background: #3399ff; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
-  button:hover { background: #1d6fd3; }
-  #board { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-  .column { background: #282934; border-radius: 8px; padding: 10px; flex: 1 1 250px; max-width: 300px; min-height: 300px; }
-  .column h2 { text-align: center; color: #66aaff; }
-  .task { background: #3a3f55; margin: 10px 0; padding: 10px; border-radius: 6px; cursor: pointer; }
-  .task.high { border-left: 6px solid #e74c3c; }
-  .task.medium { border-left: 6px solid #f39c12; }
-  .task.low { border-left: 6px solid #2ecc71; }
-  .dates { font-size: 0.8em; color: #999; margin-top: 6px; }
-  #snackbar { position: fixed; bottom: 30px; right: 30px; background: #383c4c; color: #ffc95c; padding: 12px 20px; border-radius: 10px; opacity: 0; transition: opacity 0.3s ease; font-weight: 600; }
-  #snackbar.show { opacity: 1; }
-  #archiveLink { display: block; text-align: center; margin-bottom: 20px; color: #88b0ec; cursor: pointer; text-decoration: underline; }
-</style>
+<title>Kanban Board - Main</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
 <h1>Kanban Board</h1>
-
-<a id="archiveLink" href="archive.html">View Archive (Tasks older than 7 days)</a>
+<a href="archive.html" id="archiveLink">View Archive (Tasks older than 7 days)</a>
 
 <form id="taskForm" autocomplete="off" novalidate>
   <label for="taskName">Task Name *</label>
-  <input type="text" id="taskName" required placeholder="Enter task name" />
-  
+  <input type="text" id="taskName" placeholder="Enter task name" required/>
+
   <label for="taskDescription">Description</label>
-  <textarea id="taskDescription" rows="2" placeholder="Describe your task"></textarea>
-  
+  <textarea id="taskDescription" placeholder="Describe your task"></textarea>
+
   <label for="taskPriority">Priority</label>
   <select id="taskPriority">
     <option value="low">Low</option>
     <option value="medium">Medium</option>
     <option value="high">High</option>
   </select>
-  
+
   <label for="taskColumn">Column</label>
   <select id="taskColumn">
     <option value="todo">To Do</option>
     <option value="inprogress">In Progress</option>
     <option value="done">Done</option>
   </select>
-  
+
   <label for="taskAlarm">Alarm Time (optional)</label>
   <input type="datetime-local" id="taskAlarm" />
-  
+
   <button type="submit">Add Task</button>
 </form>
 
-<div style="text-align:center; margin-bottom: 20px;">
+<div class="buttons-bar">
   <button id="exportBtn">Backup Tasks (Download JSON)</button>
   <button id="importBtn">Restore Tasks (Upload JSON)</button>
-  <input type="file" id="importFile" accept=".json" style="display:none" />
+  <input type="file" id="importFile" accept=".json" style="display:none"/>
 </div>
 
 <div id="board">
@@ -73,207 +51,6 @@
 
 <div id="snackbar"></div>
 
-<script>
-(() => {
-  const taskForm = document.getElementById('taskForm');
-  const columns = {
-    todo: document.getElementById('todo'),
-    inprogress: document.getElementById('inprogress'),
-    done: document.getElementById('done')
-  };
-  const snackbar = document.getElementById('snackbar');
-  const exportBtn = document.getElementById('exportBtn');
-  const importBtn = document.getElementById('importBtn');
-  const importFile = document.getElementById('importFile');
-
-  function showSnackbar(msg) {
-    snackbar.textContent = msg;
-    snackbar.classList.add('show');
-    setTimeout(() => snackbar.classList.remove('show'), 3000);
-  }
-
-  // Save all tasks from DOM to localStorage
-  function saveTasks() {
-    const allTasks = [];
-    Object.entries(columns).forEach(([key, col]) => {
-      [...col.children].forEach(taskElem => {
-        if (taskElem.classList && taskElem.classList.contains('task')) {
-          allTasks.push({
-            name: taskElem.dataset.name,
-            description: taskElem.dataset.description,
-            priority: taskElem.dataset.priority,
-            column: key,
-            createdDate: taskElem.dataset.createdDate,
-            movedDate: taskElem.dataset.movedDate,
-            alarmTime: taskElem.dataset.alarmTime || null,
-            alarmTriggered: taskElem.dataset.alarmTriggered || null
-          });
-        }
-      });
-    });
-    localStorage.setItem('kanbanTasks', JSON.stringify(allTasks));
-  }
-
-  // Create DOM element for a task
-  function createTaskElement(task) {
-    const div = document.createElement('div');
-    div.className = 'task ' + task.priority;
-    div.dataset.name = task.name;
-    div.dataset.description = task.description || '';
-    div.dataset.priority = task.priority;
-    div.dataset.createdDate = task.createdDate;
-    div.dataset.movedDate = task.movedDate;
-    div.dataset.alarmTime = task.alarmTime || '';
-    div.dataset.alarmTriggered = task.alarmTriggered || '';
-    
-    div.innerHTML = `
-      <strong>${task.name}</strong>
-      <p>${task.description || ''}</p>
-      <div class="dates">Created: ${new Date(task.createdDate).toLocaleDateString()} | Moved: ${new Date(task.movedDate).toLocaleDateString()}</div>
-    `;
-
-    // Task click to delete confirmation (simple demo)
-    div.addEventListener('dblclick', () => {
-      if (confirm(`Delete task "${task.name}"?`)) {
-        div.remove();
-        saveTasks();
-        showSnackbar(`Deleted task: ${task.name}`);
-      }
-    });
-
-    return div;
-  }
-
-  // Load tasks on page load, but only those created <=7 days ago
-  function loadTasks() {
-    Object.values(columns).forEach(col => {
-      // Clear except header (h2)
-      col.querySelectorAll('.task').forEach(t => t.remove());
-    });
-    let tasks = JSON.parse(localStorage.getItem('kanbanTasks') || '[]');
-    const now = new Date();
-    tasks.forEach(task => {
-      const created = new Date(task.createdDate);
-      const ageDays = (now - created)/(1000*60*60*24);
-      if (ageDays <= 7) {
-        if (columns[task.column]) {
-          const el = createTaskElement(task);
-          columns[task.column].appendChild(el);
-        }
-      }
-    });
-  }
-
-  // Alarm checker: every 30 seconds
-  function checkAlarms() {
-    let tasks = JSON.parse(localStorage.getItem('kanbanTasks') || '[]');
-    const now = new Date();
-    let updated = false;
-
-    tasks.forEach(task => {
-      if (task.alarmTime) {
-        const alarmDate = new Date(task.alarmTime);
-        if (now >= alarmDate && (!task.alarmTriggered || new Date(task.alarmTriggered) < alarmDate)) {
-          showNotification(task.name);
-          alert(`Task Alarm: "${task.name}" is due now!`);
-          task.alarmTriggered = new Date().toISOString();
-          updated = true;
-        }
-      }
-    });
-
-    if (updated) {
-      localStorage.setItem('kanbanTasks', JSON.stringify(tasks));
-    }
-  }
-
-  // Browser notification request
-  function allowNotifications() {
-    if ('Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-    }
-  }
-
-  // Show browser notification
-  function showNotification(taskName) {
-    if (Notification.permission === 'granted') {
-      new Notification('Task Alarm', { body: `"${taskName}" is due now!` });
-    }
-  }
-
-  // Event: Add Task form submit
-  taskForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = taskForm.taskName.value.trim();
-    if (!name) return alert('Please enter a task name.');
-    
-    const description = taskForm.taskDescription.value.trim();
-    const priority = taskForm.taskPriority.value;
-    const column = taskForm.taskColumn.value;
-    const alarmTime = taskForm.taskAlarm.value || null;
-    const nowIso = new Date().toISOString();
-
-    const newTask = {
-      name, description, priority, column,
-      createdDate: nowIso,
-      movedDate: nowIso,
-      alarmTime,
-      alarmTriggered: null
-    };
-
-    const taskEl = createTaskElement(newTask);
-    columns[column].appendChild(taskEl);
-    saveTasks();
-    showSnackbar(`Added task: ${name}`);
-    taskForm.reset();
-  });
-
-  // Backup/export tasks to file
-  exportBtn.addEventListener('click', () => {
-    const data = localStorage.getItem('kanbanTasks');
-    if (!data || data === '[]') {
-      alert('No tasks to backup.');
-      return;
-    }
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'kanbanTasks_backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  // Restore/import tasks from file
-  importBtn.addEventListener('click', () => importFile.click());
-  importFile.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const tasks = JSON.parse(e.target.result);
-        if (!Array.isArray(tasks)) throw new Error('Invalid file format');
-        localStorage.setItem('kanbanTasks', e.target.result);
-        loadTasks();
-        showSnackbar('Tasks restored successfully');
-      } catch {
-        alert('Failed to load tasks from file.');
-      }
-    };
-    reader.readAsText(file);
-  });
-
-  // Initialization
-  window.onload = () => {
-    loadTasks();
-    allowNotifications();
-    setInterval(checkAlarms, 30*1000); // check alarms every 30s
-  };
-})();
-</script>
-
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
