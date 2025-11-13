@@ -2,130 +2,332 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Kanban Board</title>
+  <title>Kanban Board Enhanced</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f7fa;
       color: #333;
       margin: 0;
-      padding: 10px;
-      max-width: 1000px;
+      padding: 20px;
+      max-width: 1100px;
       margin-left: auto;
       margin-right: auto;
     }
-    h1, h3 {
+    h1,h2,h3,h4 {
       margin: 0 0 10px 0;
+    }
+    button {
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      background-color: #2d8cff;
+      color: white;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1a6fe7;
     }
     .kanban-container {
       display: flex;
-      gap: 10px;
+      gap: 15px;
     }
     .column {
       flex-grow: 1;
       background: #fff;
-      border-radius: 6px;
-      padding: 10px;
-      min-height: 300px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 12px;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
     }
     .task {
       background: #e4e9f2;
-      margin-bottom: 10px;
-      padding: 8px;
-      border-radius: 4px;
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
       cursor: grab;
       border-left: 6px solid transparent;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .priority-low { border-left-color: #4caf50; }
     .priority-medium { border-left-color: #ff9800; }
     .priority-major { border-left-color: #f44336; }
-    .hidden { display: none; }
+
+    .task .tags {
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .task .tags span {
+      background-color: #d7dce3;
+      padding: 2px 7px;
+      margin-right: 6px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+    .task-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .task button {
+      background-color: #2d8cff;
+      font-size: 0.85rem;
+      padding: 4px 8px;
+    }
+    .task button:hover {
+      background-color: #1a6fe7;
+    }
+    .hidden {
+      display: none !important;
+    }
     .add-task-btn {
-      margin-top: 10px;
-      padding: 6px 10px;
+      margin-top: auto;
+      padding: 10px;
+      font-size: 1.05rem;
+      border-radius: 6px;
+      width: 100%;
+      background-color: #4caf50;
+    }
+    .add-task-btn:hover {
+      background-color: #388e3c;
+    }
+    .form-container {
+      background: #eef1f7;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 12px;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     label {
-      display: block;
-      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #222;
     }
     input[type="text"], input[type="datetime-local"], select, textarea {
-      width: 95%;
-      padding: 5px;
       font-size: 1rem;
-    }
-    .task-form {
-      background: #eef1f7;
-      padding: 10px;
+      padding: 6px;
+      margin-top: 4px;
       border-radius: 6px;
-      margin-bottom: 15px;
+      border: 1.5px solid #ccc;
+      resize: vertical;
+    }
+    textarea {
+      min-height: 70px;
     }
     .search-input {
-      margin-bottom: 15px;
-      width: 96%;
-      padding: 6px;
+      margin-bottom: 20px;
+      width: 100%;
+      padding: 8px 10px;
       font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
     }
     #archiveSection {
       margin-top: 30px;
       background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      box-shadow: 0 0 3px rgba(0,0,0,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    #archiveSection h2 {
+      margin-bottom: 15px;
+    }
+    #archiveTasks .task {
+      cursor: default;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+    .modal-close {
+      cursor: pointer;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #666;
+      border: none;
+      background: none;
+    }
+    .modal-close:hover {
+      color: #000;
+    }
+    .buttons-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .backup-restore {
+      margin: 20px 0;
+      display: flex;
+      gap: 12px;
+    }
+    .backup-restore button {
+      background-color: #2e7d32;
+    }
+    .backup-restore button:hover {
+      background-color: #1b4d20;
+    }
+    #importInput {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<h1>Kanban Board</h1>
-<input type="search" id="searchInput" placeholder="Search tasks..." class="search-input" />
+<h1>Kanban Board Enhanced</h1>
 
-<div class="kanban-container">
-  <div class="column" id="todoCol">
+<input type="search" id="searchInput" class="search-input" placeholder="Search tasks..." aria-label="Search tasks..." />
+
+<div class="backup-restore">
+  <button id="backupBtn">Backup Tasks (Export JSON)</button>
+  <button id="restoreBtn">Restore Tasks (Import JSON)</button>
+  <input type="file" id="importInput" accept="application/json" />
+</div>
+
+<div class="kanban-container" aria-label="Kanban board columns">
+  <div class="column" id="todoCol" aria-label="To-Do column">
     <h3>To-Do</h3>
-    <div id="todoTasks"></div>
+    <div id="todoTasks" aria-live="polite" aria-relevant="additions removals"></div>
     <button class="add-task-btn" id="showAddTodo">+ Add New Task</button>
-    <div id="addFormTodo" class="task-form hidden">
-      <label>Task Name <input type="text" id="todoName"/></label>
-      <label>Description<textarea id="todoDesc" rows="3"></textarea></label>
-      <label>Priority
+    <div id="addFormTodo" class="form-container hidden" aria-hidden="true">
+      <label>
+        Task Name
+        <input type="text" id="todoName" required/>
+      </label>
+      <label>
+        Description
+        <textarea id="todoDesc"></textarea>
+      </label>
+      <label>
+        Priority
         <select id="todoPriority">
           <option value="low">Low</option>
           <option value="medium" selected>Medium</option>
           <option value="major">Major</option>
         </select>
       </label>
-      <label>Alarm Date & Time <input type="datetime-local" id="todoAlarm"/></label>
-      <label>Tags (comma separated) <input type="text" id="todoTags"/></label>
-      <button id="saveTodo">Save</button>
-      <button id="cancelTodo">Cancel</button>
+      <label>
+        Alarm Date & Time
+        <input type="datetime-local" id="todoAlarm"/>
+      </label>
+      <label>
+        Tags (comma separated)
+        <input type="text" id="todoTags"/>
+      </label>
+      <div class="buttons-row">
+        <button id="saveTodo">Save</button>
+        <button id="cancelTodo">Cancel</button>
+      </div>
     </div>
   </div>
 
-  <div class="column" id="inprogressCol">
+  <div class="column" id="inprogressCol" aria-label="In Progress column">
     <h3>In Progress</h3>
-    <div id="inprogressTasks"></div>
+    <div id="inprogressTasks" aria-live="polite" aria-relevant="additions removals"></div>
   </div>
 
-  <div class="column" id="doneCol">
+  <div class="column" id="doneCol" aria-label="Done column">
     <h3>Done</h3>
-    <div id="doneTasks"></div>
+    <div id="doneTasks" aria-live="polite" aria-relevant="additions removals"></div>
   </div>
 </div>
 
-<section id="archiveSection" class="hidden">
+<section id="archiveSection" class="hidden" aria-label="Archived tasks section">
   <h2>Archive (tasks older than 7 days)</h2>
   <div id="archiveTasks"></div>
   <button id="closeArchive">Close Archive</button>
 </section>
 
-<button id="showArchiveBtn">Show Archive</button>
+<button id="showArchiveBtn" aria-expanded="false" aria-controls="archiveSection" style="margin-top: 20px;">Show Archive</button>
+
+<!-- Modal for editing -->
+<div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <div id="editModalTitle">Edit Task</div>
+      <button id="closeEditModal" class="modal-close" aria-label="Close editing modal">&times;</button>
+    </div>
+    <form id="editTaskForm">
+      <label>
+        Task Name
+        <input type="text" id="editName" required/>
+      </label>
+      <label>
+        Description
+        <textarea id="editDesc"></textarea>
+      </label>
+      <label>
+        Priority
+        <select id="editPriority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="major">Major</option>
+        </select>
+      </label>
+      <label>
+        Alarm Date & Time
+        <input type="datetime-local" id="editAlarm"/>
+      </label>
+      <label>
+        Tags (comma separated)
+        <input type="text" id="editTags"/>
+      </label>
+      <label>
+        Status
+        <select id="editStatus">
+          <option value="todo">To-Do</option>
+          <option value="inprogress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </label>
+      <div class="buttons-row">
+        <button type="submit">Save</button>
+        <button type="button" id="cancelEdit">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
-  // Kanban task array structure
-  // id: unique string
-  // name, description, priority, alarmDate, tags, status, createdAt, updatedAt
-
+  // Kanban task data
   let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
 
   const todoTasksDiv = document.getElementById("todoTasks");
@@ -139,10 +341,28 @@
   const saveTodoBtn = document.getElementById("saveTodo");
   const cancelTodoBtn = document.getElementById("cancelTodo");
 
-  const showArchiveBtn = document.getElementById("showArchiveBtn");
-  const closeArchiveBtn = document.getElementById("closeArchive");
   const searchInput = document.getElementById("searchInput");
 
+  const showArchiveBtn = document.getElementById("showArchiveBtn");
+  const closeArchiveBtn = document.getElementById("closeArchive");
+
+  // Edit modal elements
+  const editModalBackdrop = document.getElementById("editModalBackdrop");
+  const closeEditModalBtn = document.getElementById("closeEditModal");
+  const editTaskForm = document.getElementById("editTaskForm");
+  const editNameInput = document.getElementById("editName");
+  const editDescInput = document.getElementById("editDesc");
+  const editPrioritySelect = document.getElementById("editPriority");
+  const editAlarmInput = document.getElementById("editAlarm");
+  const editTagsInput = document.getElementById("editTags");
+  const editStatusSelect = document.getElementById("editStatus");
+
+  // Backup & Restore
+  const backupBtn = document.getElementById("backupBtn");
+  const restoreBtn = document.getElementById("restoreBtn");
+  const importInput = document.getElementById("importInput");
+
+  // Priority classes (border colors)
   const PRIORITY_CLASSES = {
     low: "priority-low",
     medium: "priority-medium",
@@ -154,57 +374,61 @@
     localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
   }
 
-  // Render tasks given an array and container div
-  function renderTasks(container, taskArray) {
+  // Render tasks inside container
+  function renderTasks(container, taskArray, allowEditing = true) {
     container.innerHTML = "";
     taskArray.forEach(task => {
       const div = document.createElement("div");
       div.className = "task " + PRIORITY_CLASSES[task.priority];
-      div.draggable = true;
+      div.draggable = allowEditing;
       div.dataset.id = task.id;
+      div.tabIndex = 0;
+      // Format tags nicely
+      const tagsHtml = task.tags && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
 
-      let tagsStr = task.tags && task.tags.length ? "Tags: " + task.tags.join(", ") : "";
-      let alarmStr = task.alarmDate ? "Alarm: " + new Date(task.alarmDate).toLocaleString() : "";
-
+      const alarmStr = task.alarmDate ? new Date(task.alarmDate).toLocaleString() : "";
       div.innerHTML = `
-        <strong>${task.name}</strong><br/>
-        <details><summary>Description</summary><p>${task.description || "No description"}</p></details>
-        <span>Priority: ${task.priority}</span><br/>
-        <span>${tagsStr}</span><br/>
-        <span>${alarmStr}</span><br/>
-        <button class="editBtn">Edit</button>
-        <button class="deleteBtn">Delete</button>
+        <strong>${escapeHtml(task.name)}</strong>
+        <details><summary>Description</summary><p>${escapeHtml(task.description || "No description")}</p></details>
+        <div><b>Priority:</b> ${task.priority}</div>
+        <div class="tags">${tagsHtml}</div>
+        ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
+        ${allowEditing ? `
+          <div class="task-buttons">
+            <button class="editBtn" aria-label="Edit task ${escapeHtml(task.name)}">Edit</button>
+            <button class="deleteBtn" aria-label="Delete task ${escapeHtml(task.name)}">Delete</button>
+          </div>` : ""}
       `;
 
       container.appendChild(div);
 
-      // Drag event handlers
-      div.addEventListener("dragstart", dragStart);
+      if (allowEditing) {
+        div.addEventListener("dragstart", dragStart);
 
-      // Edit button
-      div.querySelector(".editBtn").addEventListener("click", () => editTask(task.id));
-      // Delete button
-      div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
+        div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
+        div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
+      }
     });
   }
 
   // Render all columns and archive
   function renderBoard() {
     const now = Date.now();
-    const archiveThreshold = now - 7 * 24 * 60 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
     const filtered = filterTasks(searchInput.value);
 
-    const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > archiveThreshold);
-    const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= archiveThreshold);
+    const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
+    const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
 
     renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
     renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
     renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
-    renderTasks(archiveTasksDiv, archivedTasks);
+
+    renderTasks(archiveTasksDiv, archivedTasks, false);
   }
 
-  // Filter tasks based on search input
+  // Filter tasks by search term
   function filterTasks(term) {
     term = term.trim().toLowerCase();
     if (!term) return tasks;
@@ -215,18 +439,33 @@
     );
   }
 
-  // Add new task UI toggle
+  // Escape HTML for security
+  function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/[&<>"']/g, m => ({
+      '&': "&amp;",
+      '<': "&lt;",
+      '>': "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[m]);
+  }
+
+  // Add new task form toggle
   showAddTodoBtn.addEventListener("click", () => {
     addFormTodo.classList.remove("hidden");
+    addFormTodo.setAttribute("aria-hidden", "false");
     showAddTodoBtn.classList.add("hidden");
   });
+
   cancelTodoBtn.addEventListener("click", () => {
     addFormTodo.classList.add("hidden");
+    addFormTodo.setAttribute("aria-hidden", "true");
     showAddTodoBtn.classList.remove("hidden");
-    clearForm();
+    clearAddForm();
   });
 
-  function clearForm() {
+  function clearAddForm() {
     document.getElementById("todoName").value = "";
     document.getElementById("todoDesc").value = "";
     document.getElementById("todoPriority").value = "medium";
@@ -237,10 +476,7 @@
   // Add new task save
   saveTodoBtn.addEventListener("click", () => {
     const name = document.getElementById("todoName").value.trim();
-    if (!name) {
-      alert("Task name is required");
-      return;
-    }
+    if (!name) return alert("Task name is required");
     const desc = document.getElementById("todoDesc").value.trim();
     const priority = document.getElementById("todoPriority").value;
     const alarmDate = document.getElementById("todoAlarm").value;
@@ -248,7 +484,9 @@
 
     tasks.push({
       id: Date.now().toString() + Math.random().toString(36).slice(2),
-      name, description: desc, priority,
+      name,
+      description: desc,
+      priority,
       alarmDate: alarmDate ? new Date(alarmDate).toISOString() : null,
       tags,
       status: "todo",
@@ -258,17 +496,19 @@
 
     saveTasks();
     renderBoard();
-    clearForm();
+    clearAddForm();
     addFormTodo.classList.add("hidden");
+    addFormTodo.setAttribute("aria-hidden", "true");
     showAddTodoBtn.classList.remove("hidden");
   });
 
-  // Drag and drop handlers
+  // Drag and drop handlers (native HTML5)
   let draggedTaskId = null;
 
   function dragStart(event) {
     draggedTaskId = event.target.dataset.id;
-    // Set drag image if needed
+    event.dataTransfer.setData("text/plain", draggedTaskId);
+    event.dataTransfer.effectAllowed = "move";
   }
 
   function dragOver(event) {
@@ -277,19 +517,14 @@
 
   function drop(event) {
     event.preventDefault();
-    const column = event.currentTarget.id;
+    const columnId = event.currentTarget.id;
     if (!draggedTaskId) return;
 
-    let task = tasks.find(t => t.id === draggedTaskId);
+    const task = tasks.find(t => t.id === draggedTaskId);
     if (task) {
-      // Update status depending on drop container id
-      if (column === "todoCol") {
-        task.status = "todo";
-      } else if (column === "inprogressCol") {
-        task.status = "inprogress";
-      } else if (column === "doneCol") {
-        task.status = "done";
-      }
+      if (columnId === "todoCol") task.status = "todo";
+      else if (columnId === "inprogressCol") task.status = "inprogress";
+      else if (columnId === "doneCol") task.status = "done";
       task.updatedAt = new Date().toISOString();
       saveTasks();
       renderBoard();
@@ -297,39 +532,11 @@
     draggedTaskId = null;
   }
 
-  // Setup droppable columns
   ["todoCol", "inprogressCol", "doneCol"].forEach(id => {
-    document.getElementById(id).addEventListener("dragover", dragOver);
-    document.getElementById(id).addEventListener("drop", drop);
+    const col = document.getElementById(id);
+    col.addEventListener("dragover", dragOver);
+    col.addEventListener("drop", drop);
   });
-
-  // Edit task
-  function editTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return alert("Task not found");
-
-    // Simple prompt-based editing for demo (can replace with form dialog)
-    const newName = prompt("Edit Task Name", task.name);
-    if (newName === null) return; // cancel
-
-    const newDesc = prompt("Edit Description", task.description);
-    if (newDesc === null) return;
-
-    const newPriority = prompt("Priority (low, medium, major)", task.priority);
-    if (newPriority === null) return;
-
-    const newTags = prompt("Tags (comma separated)", task.tags.join(", "));
-    if (newTags === null) return;
-
-    task.name = newName.trim();
-    task.description = newDesc.trim();
-    task.priority = ["low", "medium", "major"].includes(newPriority) ? newPriority : task.priority;
-    task.tags = newTags.split(",").map(t => t.trim()).filter(Boolean);
-    task.updatedAt = new Date().toISOString();
-
-    saveTasks();
-    renderBoard();
-  }
 
   // Delete task
   function deleteTask(id) {
@@ -339,38 +546,90 @@
     renderBoard();
   }
 
+  // Edit modal functionality
+  let editingTaskId = null;
+
+  function openEditModal(id) {
+    editingTaskId = id;
+    const task = tasks.find(t => t.id === id);
+    if (!task) return alert("Task not found");
+
+    editNameInput.value = task.name;
+    editDescInput.value = task.description || "";
+    editPrioritySelect.value = task.priority;
+    editAlarmInput.value = task.alarmDate ? task.alarmDate.substring(0, 16) : "";
+    editTagsInput.value = task.tags.join(", ");
+    editStatusSelect.value = task.status;
+
+    editModalBackdrop.classList.remove("hidden");
+    editModalBackdrop.focus();
+  }
+
+  closeEditModalBtn.addEventListener("click", closeEditModal);
+  document.getElementById("cancelEdit").addEventListener("click", closeEditModal);
+
+  function closeEditModal() {
+    editingTaskId = null;
+    editModalBackdrop.classList.add("hidden");
+  }
+
+  editTaskForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!editingTaskId) return;
+    const task = tasks.find(t => t.id === editingTaskId);
+    if (!task) return alert("Task not found");
+    const name = editNameInput.value.trim();
+    if (!name) return alert("Task name is required");
+
+    task.name = name;
+    task.description = editDescInput.value.trim();
+    task.priority = editPrioritySelect.value;
+    task.alarmDate = editAlarmInput.value ? new Date(editAlarmInput.value).toISOString() : null;
+    task.tags = editTagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
+    task.status = editStatusSelect.value;
+    task.updatedAt = new Date().toISOString();
+
+    saveTasks();
+    renderBoard();
+    closeEditModal();
+  });
+
   // Show/hide archive
   showArchiveBtn.addEventListener("click", () => {
     archiveSection.classList.remove("hidden");
     document.querySelector(".kanban-container").classList.add("hidden");
+    showArchiveBtn.setAttribute("aria-expanded", "true");
     showArchiveBtn.classList.add("hidden");
   });
 
   closeArchiveBtn.addEventListener("click", () => {
     archiveSection.classList.add("hidden");
     document.querySelector(".kanban-container").classList.remove("hidden");
+    showArchiveBtn.setAttribute("aria-expanded", "false");
     showArchiveBtn.classList.remove("hidden");
   });
 
-  // Search functionality
+  // Search input
   searchInput.addEventListener("input", () => {
     renderBoard();
   });
 
-  // Notifications
-  function notifyDueTasks() {
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") {
+  // Notifications permissions
+  if ("Notification" in window) {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission();
-      return;
     }
-    const now = Date.now();
-    const next30Min = now + 30 * 60 * 1000;
+  }
 
+  // Notifications for due alarms
+  function notifyDueTasks() {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const now = Date.now();
+    const next30min = now + 30 * 60 * 1000;
     tasks.forEach(task => {
       if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate) {
-        let alarmTime = new Date(task.alarmDate).getTime();
-        if (alarmTime >= now && alarmTime <= next30Min) {
+        const alarmTime = new Date(task.alarmDate).getTime();
+        if (alarmTime >= now && alarmTime <= next30min) {
           new Notification("Kanban Task Alarm", {
             body: `${task.name} is due at ${new Date(task.alarmDate).toLocaleTimeString()}`,
             tag: task.id
@@ -380,20 +639,58 @@
     });
   }
 
-  // Interval backup and notification setup
+  // Interval backups and notifications
   setInterval(() => {
-    // Backup every 4 hours (here just saving to localStorage)
     saveTasks();
     console.log("Backup done at " + new Date().toLocaleTimeString());
   }, 4 * 60 * 60 * 1000);
 
   setInterval(() => {
-    // Notifications every 30 minutes
     notifyDueTasks();
   }, 30 * 60 * 1000);
 
-  // Initial render
+  // Initial rendering
   renderBoard();
+
+  // Backup tasks to downloadable JSON file
+  backupBtn.addEventListener("click", () => {
+    const dataStr = JSON.stringify(tasks, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `kanban-backup-${new Date().toISOString().substring(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Restore tasks from JSON file input
+  restoreBtn.addEventListener("click", () => {
+    importInput.click();
+  });
+
+  importInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (Array.isArray(imported)) {
+          tasks = imported;
+          saveTasks();
+          renderBoard();
+          alert("Tasks restored successfully!");
+        } else {
+          alert("Invalid file format.");
+        }
+      } catch (error) {
+        alert("Error reading file: " + error.message);
+      }
+    };
+    reader.readAsText(file);
+    importInput.value = ""; // reset for next import
+  });
 </script>
 
 </body>
