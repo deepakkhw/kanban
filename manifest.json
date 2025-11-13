@@ -1,11 +1,11 @@
 {
   "name": "Kanban Board",
   "short_name": "Kanban",
-  "description": "Simple Kanban Board with Keyboard Shortcuts and Enhanced UI",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#23242a",
   "theme_color": "#3399ff",
+  "description": "A customizable Kanban task management board with task alarms and archive feature.",
   "icons": [
     {
       "src": "icons/icon-192.png",
