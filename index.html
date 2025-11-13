@@ -2,17 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Kanban Board – Glass, Shortcuts, Robust Modal</title>
+<title>Kanban Board – Private, with Shortcuts</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #43508c 0%, #a9b9e2 100%);
-    color: #e3e6e8;
-    margin: 0; padding: 27px 0 0 0;
+    color: #e3e6e8; margin: 0; padding: 27px 0 0 0;
     max-width: 1120px; margin-left:auto; margin-right:auto;
   }
+  .privacy-info {
+    background: rgba(20,35,66,0.11);
+    padding: 13px 18px 10px 22px;
+    border-radius: 0 0 16px 16px;
+    font-size: 1.03em;
+    margin-bottom: 8px;
+    color:#e0ebf9;
+    box-shadow: 0 2.5px 19px #21386523;
+    letter-spacing:.02em;
+    text-shadow: 0 1px 2px #29496629;
+  }
+  .privacy-info b { color: #a8d7fb; }
   h1 {
-    margin: 0 0 18px 0;
+    margin: 0 0 16px 0;
     letter-spacing: 2px;
     font-weight: 800;
     text-shadow: 0 4px 18px #1a213a53;
@@ -37,18 +48,18 @@
   }
   .topbar-flex button:active, .topbar-flex button:focus { background: rgba(45,65,130,0.24); color: #fff; }
   .shortcut {
-    font-size:0.82em;
-    color:#242d45;
-    background: #dbe7fa;
+    font-size:0.83em;
+    color:#183158;
+    background: #abd9f5;
     font-weight:800;
     letter-spacing: .5px;
     margin-left: 4px;
     margin-right:0;
-    padding: 1.3px 5.5px;
+    padding: 1.2px 6px;
     border-radius:5px;
-    outline: 1.2px solid #6176a7;
-    box-shadow: 0 1.5px 7px #202e4c1c;
-    opacity:.87;
+    outline: 1.2px solid #436a97;
+    box-shadow: 0 1.5px 6px #202e4c1c;
+    opacity:.92;
     vertical-align:middle;
     pointer-events:none;
     user-select:none;
@@ -81,7 +92,6 @@
   }
   #addFormTodo textarea { min-height: 38px;}
   #addFormTodo .buttons-row { width: 100%; display: flex; gap: 11px; justify-content: flex-end; margin-top: 4px;}
-  .hidden { display: none !important;}
   .kanban-container {
     display: flex;
     gap: 10px;
@@ -225,6 +235,9 @@
 </style>
 </head>
 <body>
+<div class="privacy-info">
+  <b>Data Privacy Notice:</b> All your Kanban board data is <b>only stored locally in your browser</b>. <b>We do not store, backup, sync, or collect any data</b>—your board is completely private and personal. <b>Be sure to use the Backup feature to save your board regularly</b> so you never lose your tasks.
+</div>
 <h1>Kanban Board</h1>
 <div class="topbar-flex">
   <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task <span class="shortcut">Alt+A</span></button>
@@ -232,7 +245,7 @@
   <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore <span class="shortcut">Alt+R</span></button>
   <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive <span class="shortcut">Alt+V</span></button>
   <input type="file" id="importInput" accept="application/json" />
-  <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F to focus" />
+  <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F or / to focus" />
 </div>
 <form id="addFormTodo" class="form-container hidden" aria-hidden="true" tabindex="-1" autocomplete="off">
   <label>Task Name<input type="text" id="todoName" required /></label>
@@ -247,8 +260,8 @@
   <label>Alarm Date & Time<input type="datetime-local" id="todoAlarm"/></label>
   <label>Tags (comma separated)<input type="text" id="todoTags" /></label>
   <div class="buttons-row">
-    <button id="saveTodo" type="submit">Save</button>
-    <button type="button" id="cancelTodo">Cancel</button>
+    <button id="saveTodo" type="submit"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
+    <button type="button" id="cancelTodo"><u>C</u>ancel <span class="shortcut">Alt+C</span></button>
   </div>
 </form>
 <div class="kanban-container" aria-label="Kanban board columns">
@@ -259,9 +272,8 @@
 <section id="archiveSection" class="hidden">
   <h2>Archive (tasks older than 7 days)</h2>
   <div id="archiveTasks"></div>
-  <button id="closeArchive">Close Archive</button>
+  <button id="closeArchive"><u>X</u> Close <span class="shortcut">Alt+X / Esc</span></button>
 </section>
-<!-- Edit Modal -->
 <div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" tabindex="-1">
   <div class="modal">
     <div class="modal-header">
@@ -288,20 +300,42 @@
         </select>
       </label>
       <div class="buttons-row">
-        <button type="submit">Save</button>
-        <button type="button" id="cancelEdit">Cancel</button>
+        <button type="submit"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
+        <button type="button" id="cancelEdit"><u>C</u>ancel <span class="shortcut">Alt+C / Esc</span></button>
       </div>
     </form>
   </div>
 </div>
 <script>
 let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
-const todoTasksDiv = document.getElementById("todoTasks"), inprogressTasksDiv = document.getElementById("inprogressTasks"), doneTasksDiv = document.getElementById("doneTasks"), archiveTasksDiv = document.getElementById("archiveTasks"), archiveSection = document.getElementById("archiveSection"), showAddTodoTop = document.getElementById("showAddTodoTop"), addFormTodo = document.getElementById("addFormTodo"), saveTodoBtn = document.getElementById("saveTodo"), cancelTodoBtn = document.getElementById("cancelTodo"), searchInput = document.getElementById("searchInput"), showArchiveBtn = document.getElementById("showArchiveBtn"), closeArchiveBtn = document.getElementById("closeArchive"), backupBtn = document.getElementById("backupBtn"), restoreBtn = document.getElementById("restoreBtn"), importInput = document.getElementById("importInput"), editModalBackdrop = document.getElementById("editModalBackdrop"), closeEditModalBtn = document.getElementById("closeEditModal"), editTaskForm = document.getElementById("editTaskForm"), editNameInput = document.getElementById("editName"), editDescInput = document.getElementById("editDesc"), editPrioritySelect = document.getElementById("editPriority"), editAlarmInput = document.getElementById("editAlarm"), editTagsInput = document.getElementById("editTags"), editStatusSelect = document.getElementById("editStatus");
+const todoTasksDiv = document.getElementById("todoTasks"),
+  inprogressTasksDiv = document.getElementById("inprogressTasks"),
+  doneTasksDiv = document.getElementById("doneTasks"),
+  archiveTasksDiv = document.getElementById("archiveTasks"),
+  archiveSection = document.getElementById("archiveSection"),
+  showAddTodoTop = document.getElementById("showAddTodoTop"),
+  addFormTodo = document.getElementById("addFormTodo"),
+  saveTodoBtn = document.getElementById("saveTodo"),
+  cancelTodoBtn = document.getElementById("cancelTodo"),
+  searchInput = document.getElementById("searchInput"),
+  showArchiveBtn = document.getElementById("showArchiveBtn"),
+  closeArchiveBtn = document.getElementById("closeArchive"),
+  backupBtn = document.getElementById("backupBtn"),
+  restoreBtn = document.getElementById("restoreBtn"),
+  importInput = document.getElementById("importInput"),
+  editModalBackdrop = document.getElementById("editModalBackdrop"),
+  closeEditModalBtn = document.getElementById("closeEditModal"),
+  editTaskForm = document.getElementById("editTaskForm"),
+  editNameInput = document.getElementById("editName"),
+  editDescInput = document.getElementById("editDesc"),
+  editPrioritySelect = document.getElementById("editPriority"),
+  editAlarmInput = document.getElementById("editAlarm"),
+  editTagsInput = document.getElementById("editTags"),
+  editStatusSelect = document.getElementById("editStatus");
 const PRIORITY_CLASSES = { low: "priority-low", medium: "priority-medium", major: "priority-major" };
-
 let editingTaskId = null;
 
-// --- Render UI Helpers ---
+// --- Render Helpers ---
 function saveTasks() { localStorage.setItem("kanbanTasks", JSON.stringify(tasks)); }
 function escapeHtml(text) { if (!text) return ""; return text.replace(/[&<>"']/g, m => ({ '&': "&amp;", '<': "&lt;", '>': "&gt;", '"': "&quot;", "'": "&#39;" })[m]); }
 function getTaskAgeBadge(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'Today'; if (created.toDateString() === yesterday.toDateString()) return 'Yesterday'; return null; }
@@ -362,7 +396,6 @@ function filterTasks(term) {
     (t.tags && t.tags.some(tag => tag.toLowerCase().includes(term)))
   );
 }
-
 // Add form events
 showAddTodoTop.addEventListener("click", () => {
   addFormTodo.classList.remove("hidden");
@@ -452,7 +485,9 @@ function closeEditModal() {
 closeEditModalBtn.addEventListener("click", closeEditModal);
 document.getElementById("cancelEdit").addEventListener("click", closeEditModal);
 editModalBackdrop.addEventListener("mousedown", function(e) { if (e.target === this) closeEditModal(); });
-document.addEventListener("keydown", function(e) { if (e.key === "Escape" && !editModalBackdrop.classList.contains("hidden")) closeEditModal(); });
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape" && !editModalBackdrop.classList.contains("hidden")) closeEditModal();
+});
 editTaskForm.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!editingTaskId) return;
@@ -474,14 +509,18 @@ showArchiveBtn.addEventListener("click", () => {
   document.querySelector(".kanban-container").classList.add("hidden");
   showArchiveBtn.setAttribute("aria-expanded", "true");
   showArchiveBtn.classList.add("hidden");
+  closeArchiveBtn.focus();
 });
-closeArchiveBtn.addEventListener("click", () => {
+closeArchiveBtn.addEventListener("click", closeArchiveSection);
+function closeArchiveSection() {
   archiveSection.classList.add("hidden");
   document.querySelector(".kanban-container").classList.remove("hidden");
   showArchiveBtn.setAttribute("aria-expanded", "false");
   showArchiveBtn.classList.remove("hidden");
-});
+  showArchiveBtn.focus();
+}
 searchInput.addEventListener("input", renderBoard);
+
 // Alarm notifications
 function requestNotifications() {
   if ("Notification" in window) {
@@ -535,14 +574,42 @@ importInput.addEventListener("change", (event) => {
   reader.readAsText(file);
   importInput.value = "";
 });
+
+// --- Global keyboard shortcuts ---
 document.addEventListener("keydown", function(e){
-  // Shortcuts: Alt + (A,B,R,F,V) for add, backup, restore, search, archive
-  if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) return;
-  if      (e.altKey && e.key.toLowerCase() === "a") { showAddTodoTop.click(); e.preventDefault(); }
-  else if (e.altKey && e.key.toLowerCase() === "b") { backupBtn.click(); e.preventDefault(); }
-  else if (e.altKey && e.key.toLowerCase() === "r") { restoreBtn.click(); e.preventDefault(); }
-  else if (e.altKey && e.key.toLowerCase() === "f") { searchInput.focus(); e.preventDefault(); }
-  else if (e.altKey && e.key.toLowerCase() === "v") { showArchiveBtn.click(); e.preventDefault(); }
+  // Shortcuts: Alt + (A,B,R,F,V,S,C,X), or "/" for search
+  const mod = e.altKey;
+  if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) {
+    // Save ("Alt+S") or Cancel ("Alt+C", "Escape") when Add/Edit modal is open
+    if (addFormTodo && !addFormTodo.classList.contains('hidden')) {
+      if (mod && e.key.toLowerCase() === "s") { saveTodoBtn.click(); e.preventDefault(); }
+      else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { cancelTodoBtn.click(); e.preventDefault(); }
+    }
+    if (editModalBackdrop && !editModalBackdrop.classList.contains('hidden')) {
+      if (mod && e.key.toLowerCase() === "s") { editTaskForm.querySelector('button[type="submit"]').click(); e.preventDefault(); }
+      else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { closeEditModal(); e.preventDefault(); }
+    }
+    // "/" focuses search if not already in search
+    if (e.key === "/" && document.activeElement !== searchInput) {
+      searchInput.focus(); e.preventDefault();
+    }
+    return;
+  }
+  // Outside inputs (main navigation)
+  if      (mod && e.key.toLowerCase() === "a") { showAddTodoTop.click(); e.preventDefault(); }
+  else if (mod && e.key.toLowerCase() === "b") { backupBtn.click(); e.preventDefault(); }
+  else if (mod && e.key.toLowerCase() === "r") { restoreBtn.click(); e.preventDefault(); }
+  else if ((mod && e.key.toLowerCase() === "f") || e.key === "/") { searchInput.focus(); e.preventDefault(); }
+  else if (mod && e.key.toLowerCase() === "v") { showArchiveBtn.click(); e.preventDefault(); }
+  else if (mod && e.key.toLowerCase() === "x") { 
+    if (!archiveSection.classList.contains('hidden')) { closeArchiveSection(); e.preventDefault(); }
+  }
+  // Escape always closes Add Task form, Archive, or Edit
+  if (e.key === "Escape") {
+    if (!addFormTodo.classList.contains('hidden')) cancelTodoBtn.click();
+    if (!archiveSection.classList.contains('hidden')) closeArchiveSection();
+    if (!editModalBackdrop.classList.contains('hidden')) closeEditModal();
+  }
 });
 renderBoard();
 </script>
