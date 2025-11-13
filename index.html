@@ -1,224 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Kanban Board Enhanced</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-      max-width: 1100px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    h1,h2,h3,h4 {
-      margin: 0 0 10px 0;
-    }
-    button {
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: none;
-      background-color: #2d8cff;
-      color: white;
-      font-size: 1rem;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #1a6fe7;
-    }
-    .kanban-container {
-      display: flex;
-      gap: 15px;
-    }
-    .column {
-      flex-grow: 1;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      padding: 12px;
-      min-height: 400px;
-      display: flex;
-      flex-direction: column;
-    }
-    .task {
-      background: #e4e9f2;
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      border-radius: 6px;
-      cursor: grab;
-      border-left: 6px solid transparent;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      word-wrap: break-word;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .priority-low { border-left-color: #4caf50; }
-    .priority-medium { border-left-color: #ff9800; }
-    .priority-major { border-left-color: #f44336; }
+<meta charset="UTF-8" />
+<title>Kanban Board with Glass Theme</title>
+<style>
+  /* Glassmorphism base */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #e3e6e8;
+    margin: 0;
+    padding: 20px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    user-select: none;
+  }
 
-    .task .tags {
-      font-size: 0.9rem;
-      color: #555;
-    }
-    .task .tags span {
-      background-color: #d7dce3;
-      padding: 2px 7px;
-      margin-right: 6px;
-      border-radius: 12px;
-      display: inline-block;
-    }
-    .task-buttons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .task button {
-      background-color: #2d8cff;
-      font-size: 0.85rem;
-      padding: 4px 8px;
-    }
-    .task button:hover {
-      background-color: #1a6fe7;
-    }
-    .hidden {
-      display: none !important;
-    }
-    .add-task-btn {
-      margin-top: auto;
-      padding: 10px;
-      font-size: 1.05rem;
-      border-radius: 6px;
-      width: 100%;
-      background-color: #4caf50;
-    }
-    .add-task-btn:hover {
-      background-color: #388e3c;
-    }
-    .form-container {
-      background: #eef1f7;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      padding: 12px;
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    label {
-      display: flex;
-      flex-direction: column;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: #222;
-    }
-    input[type="text"], input[type="datetime-local"], select, textarea {
-      font-size: 1rem;
-      padding: 6px;
-      margin-top: 4px;
-      border-radius: 6px;
-      border: 1.5px solid #ccc;
-      resize: vertical;
-    }
-    textarea {
-      min-height: 70px;
-    }
-    .search-input {
-      margin-bottom: 20px;
-      width: 100%;
-      padding: 8px 10px;
-      font-size: 1.1rem;
-      border-radius: 8px;
-      border: 1.5px solid #ccc;
-    }
-    #archiveSection {
-      margin-top: 30px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    #archiveSection h2 {
-      margin-bottom: 15px;
-    }
-    #archiveTasks .task {
-      cursor: default;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-    .modal {
-      background: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      width: 400px;
-      max-width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-bottom: 12px;
-    }
-    .modal-close {
-      cursor: pointer;
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #666;
-      border: none;
-      background: none;
-    }
-    .modal-close:hover {
-      color: #000;
-    }
-    .buttons-row {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    .backup-restore {
-      margin: 20px 0;
-      display: flex;
-      gap: 12px;
-    }
-    .backup-restore button {
-      background-color: #2e7d32;
-    }
-    .backup-restore button:hover {
-      background-color: #1b4d20;
-    }
-    #importInput {
-      display: none;
-    }
-  </style>
+  h1, h2, h3, h4 {
+    margin: 0 0 12px 0;
+  }
+
+  button {
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #e3e6e8;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    user-select: none;
+  }
+  button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #1e3c72;
+  }
+
+  .kanban-container {
+    display: flex;
+    gap: 16px;
+  }
+  .column {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 20px 16px 16px 16px;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .column h3 {
+    text-align: center;
+    text-shadow: 0px 2px 6px #12305a;
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+
+  .task {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    cursor: grab;
+    border-left: 6px solid transparent;
+    box-shadow: 0 4px 30px rgba(31, 38, 135, 0.1);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #f3f5f7;
+    font-size: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 100%;
+    word-wrap: break-word;
+    position: relative;
+    transition: box-shadow 0.3s ease;
+  }
+  .task:hover {
+    box-shadow: 0 7px 40px rgba(31, 38, 135, 0.3);
+  }
+
+  .priority-low { border-left-color: #43a047; }
+  .priority-medium { border-left-color: #fb8c00; }
+  .priority-major { border-left-color: #e53935; }
+  
+  .task .tags {
+    color: #cfd8dc;
+    font-size: 0.9rem;
+  }
+  .task .tags span {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: 3px 8px;
+    margin-right: 6px;
+    border-radius: 14px;
+    display: inline-block;
+    user-select: text;
+  }
+  .task .timestamps {
+    font-size: 0.75rem;
+    color: #9aa7b0;
+    font-style: italic;
+  }
+
+  .task-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .task button {
+    background-color: rgba(255,255,255,0.15);
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 14px;
+    transition: background-color 0.25s ease;
+  }
+  .task button:hover {
+    background-color: rgba(255,255,255,0.35);
+    color: #1e3c72;
+  }
+
+  .add-task-btn {
+    padding: 12px;
+    font-size: 1.05rem;
+    border-radius: 18px;
+    width: 100%;
+    margin-top: auto;
+    background-color: rgba(67, 160, 71, 0.8);
+    font-weight: 700;
+  }
+  .add-task-btn:hover {
+    background-color: rgba(33, 115, 33, 0.9);
+    color: #e3e6e8;
+  }
+
+  .form-container {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    box-shadow: 0 0 35px rgba(255, 255, 255, 0.15);
+    padding: 18px 24px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: #e3e6e8;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+  }
+  input[type="text"], input[type="datetime-local"], select, textarea {
+    font-size: 1rem;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-radius: 12px;
+    border: none;
+    background-color: rgba(255,255,255,0.12);
+    color: #e3e6e8;
+    outline: none;
+    transition: background-color 0.3s ease;
+    user-select: text;
+  }
+  input[type="text"]:focus, input[type="datetime-local"]:focus,
+  select:focus, textarea:focus {
+    background-color: rgba(255,255,255,0.3);
+  }
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .search-input {
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1.2rem;
+    border-radius: 16px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #e3e6e8;
+    outline: none;
+    user-select: text;
+    transition: background-color 0.3s ease;
+  }
+  .search-input::placeholder {
+    color: #b0bec5;
+  }
+  .search-input:focus {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  #archiveSection {
+    margin-top: 34px;
+    background: rgba(255,255,255,0.12);
+    padding: 22px;
+    border-radius: 18px;
+    box-shadow: 0 8px 40px rgba(255,255,255,0.12);
+    backdrop-filter: blur(18px);
+    color: #e3e6e8;
+  }
+  #archiveSection h2 {
+    margin-bottom: 22px;
+    font-weight: 700;
+  }
+  #archiveTasks .task {
+    cursor: default;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  .modal {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px 36px;
+    box-shadow: 0 8px 40px rgba(255,255,255,0.3);
+    backdrop-filter: blur(22px);
+    color: #e3e6e8;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+    font-size: 1.35rem;
+    margin-bottom: 24px;
+  }
+  .modal-close {
+    cursor: pointer;
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #e3e6e8;
+    border: none;
+    background: none;
+    user-select: none;
+  }
+  .modal-close:hover {
+    color: #ff5252;
+  }
+  .buttons-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    margin-top: 16px;
+  }
+
+  .backup-restore {
+    margin: 20px 0 28px 0;
+    display: flex;
+    gap: 20px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .backup-restore button {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #e3e6e8;
+    font-weight: 600;
+  }
+  .backup-restore button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #1e3c72;
+  }
+  #importInput {
+    display: none;
+  }
+
+  /* Badges for "age" of task */
+  .task-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background-color: rgba(255,255,255,0.2);
+    color: #e3e6e8;
+    font-weight: 600;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+  }
+  .badge-today { background-color: rgba(76,175,80,0.6); }
+  .badge-yesterday { background-color: rgba(255,193,7,0.6); }
+  .badge-old { background-color: rgba(244,67,54,0.6); }
+
+</style>
 </head>
 <body>
 
-<h1>Kanban Board Enhanced</h1>
+<h1>Kanban Board with Glass Theme</h1>
 
 <input type="search" id="searchInput" class="search-input" placeholder="Search tasks..." aria-label="Search tasks..." />
 
 <div class="backup-restore">
-  <button id="backupBtn">Backup Tasks (Export JSON)</button>
-  <button id="restoreBtn">Restore Tasks (Import JSON)</button>
+  <button id="backupBtn" title="Download tasks as JSON backup">Backup Tasks (Export JSON)</button>
+  <button id="restoreBtn" title="Import tasks from JSON file">Restore Tasks (Import JSON)</button>
   <input type="file" id="importInput" accept="application/json" />
 </div>
 
@@ -226,15 +317,15 @@
   <div class="column" id="todoCol" aria-label="To-Do column">
     <h3>To-Do</h3>
     <div id="todoTasks" aria-live="polite" aria-relevant="additions removals"></div>
-    <button class="add-task-btn" id="showAddTodo">+ Add New Task</button>
-    <div id="addFormTodo" class="form-container hidden" aria-hidden="true">
+    <button class="add-task-btn" id="showAddTodo" aria-expanded="false" aria-controls="addFormTodo" aria-label="Add new task in To-Do column">+ Add New Task</button>
+    <div id="addFormTodo" class="form-container hidden" aria-hidden="true" tabindex="-1">
       <label>
         Task Name
-        <input type="text" id="todoName" required/>
+        <input type="text" id="todoName" required autofocus/>
       </label>
       <label>
         Description
-        <textarea id="todoDesc"></textarea>
+        <textarea id="todoDesc" spellcheck="true"></textarea>
       </label>
       <label>
         Priority
@@ -250,11 +341,11 @@
       </label>
       <label>
         Tags (comma separated)
-        <input type="text" id="todoTags"/>
+        <input type="text" id="todoTags" />
       </label>
       <div class="buttons-row">
-        <button id="saveTodo">Save</button>
-        <button id="cancelTodo">Cancel</button>
+        <button id="saveTodo" aria-label="Save new task">Save</button>
+        <button id="cancelTodo" aria-label="Cancel adding task">Cancel</button>
       </div>
     </div>
   </div>
@@ -278,8 +369,7 @@
 
 <button id="showArchiveBtn" aria-expanded="false" aria-controls="archiveSection" style="margin-top: 20px;">Show Archive</button>
 
-<!-- Modal for editing -->
-<div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+<div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" tabindex="-1">
   <div class="modal">
     <div class="modal-header">
       <div id="editModalTitle">Edit Task</div>
@@ -288,11 +378,11 @@
     <form id="editTaskForm">
       <label>
         Task Name
-        <input type="text" id="editName" required/>
+        <input type="text" id="editName" required autofocus />
       </label>
       <label>
         Description
-        <textarea id="editDesc"></textarea>
+        <textarea id="editDesc" spellcheck="true"></textarea>
       </label>
       <label>
         Priority
@@ -319,34 +409,33 @@
         </select>
       </label>
       <div class="buttons-row">
-        <button type="submit">Save</button>
-        <button type="button" id="cancelEdit">Cancel</button>
+        <button type="submit" aria-label="Save edits">Save</button>
+        <button type="button" id="cancelEdit" aria-label="Cancel edits">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  // Kanban task data
+  // Kanban task data structure
   let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
 
+  // Elements cache
   const todoTasksDiv = document.getElementById("todoTasks");
   const inprogressTasksDiv = document.getElementById("inprogressTasks");
   const doneTasksDiv = document.getElementById("doneTasks");
   const archiveTasksDiv = document.getElementById("archiveTasks");
   const archiveSection = document.getElementById("archiveSection");
-
   const showAddTodoBtn = document.getElementById("showAddTodo");
   const addFormTodo = document.getElementById("addFormTodo");
   const saveTodoBtn = document.getElementById("saveTodo");
   const cancelTodoBtn = document.getElementById("cancelTodo");
-
   const searchInput = document.getElementById("searchInput");
-
   const showArchiveBtn = document.getElementById("showArchiveBtn");
   const closeArchiveBtn = document.getElementById("closeArchive");
-
-  // Edit modal elements
+  const backupBtn = document.getElementById("backupBtn");
+  const restoreBtn = document.getElementById("restoreBtn");
+  const importInput = document.getElementById("importInput");
   const editModalBackdrop = document.getElementById("editModalBackdrop");
   const closeEditModalBtn = document.getElementById("closeEditModal");
   const editTaskForm = document.getElementById("editTaskForm");
@@ -357,89 +446,20 @@
   const editTagsInput = document.getElementById("editTags");
   const editStatusSelect = document.getElementById("editStatus");
 
-  // Backup & Restore
-  const backupBtn = document.getElementById("backupBtn");
-  const restoreBtn = document.getElementById("restoreBtn");
-  const importInput = document.getElementById("importInput");
-
-  // Priority classes (border colors)
   const PRIORITY_CLASSES = {
     low: "priority-low",
     medium: "priority-medium",
     major: "priority-major"
   };
 
+  // --- UTILS ---
+
   // Save tasks to localStorage
   function saveTasks() {
     localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
   }
 
-  // Render tasks inside container
-  function renderTasks(container, taskArray, allowEditing = true) {
-    container.innerHTML = "";
-    taskArray.forEach(task => {
-      const div = document.createElement("div");
-      div.className = "task " + PRIORITY_CLASSES[task.priority];
-      div.draggable = allowEditing;
-      div.dataset.id = task.id;
-      div.tabIndex = 0;
-      // Format tags nicely
-      const tagsHtml = task.tags && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
-
-      const alarmStr = task.alarmDate ? new Date(task.alarmDate).toLocaleString() : "";
-      div.innerHTML = `
-        <strong>${escapeHtml(task.name)}</strong>
-        <details><summary>Description</summary><p>${escapeHtml(task.description || "No description")}</p></details>
-        <div><b>Priority:</b> ${task.priority}</div>
-        <div class="tags">${tagsHtml}</div>
-        ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
-        ${allowEditing ? `
-          <div class="task-buttons">
-            <button class="editBtn" aria-label="Edit task ${escapeHtml(task.name)}">Edit</button>
-            <button class="deleteBtn" aria-label="Delete task ${escapeHtml(task.name)}">Delete</button>
-          </div>` : ""}
-      `;
-
-      container.appendChild(div);
-
-      if (allowEditing) {
-        div.addEventListener("dragstart", dragStart);
-
-        div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
-        div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
-      }
-    });
-  }
-
-  // Render all columns and archive
-  function renderBoard() {
-    const now = Date.now();
-    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-
-    const filtered = filterTasks(searchInput.value);
-
-    const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
-    const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
-
-    renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
-    renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
-    renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
-
-    renderTasks(archiveTasksDiv, archivedTasks, false);
-  }
-
-  // Filter tasks by search term
-  function filterTasks(term) {
-    term = term.trim().toLowerCase();
-    if (!term) return tasks;
-    return tasks.filter(t =>
-      t.name.toLowerCase().includes(term) ||
-      (t.description && t.description.toLowerCase().includes(term)) ||
-      (t.tags && t.tags.some(tag => tag.toLowerCase().includes(term)))
-    );
-  }
-
-  // Escape HTML for security
+  // Escape HTML characters for security
   function escapeHtml(text) {
     if (!text) return "";
     return text.replace(/[&<>"']/g, m => ({
@@ -451,16 +471,123 @@
     })[m]);
   }
 
-  // Add new task form toggle
+  // Calculate "age" badge for task
+  function getTaskAgeBadge(createdAt) {
+    const created = new Date(createdAt);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (created.toDateString() === today.toDateString()) return 'Today';
+    if (created.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return null;
+  }
+
+  function getTaskAgeClass(createdAt) {
+    const created = new Date(createdAt);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (created.toDateString() === today.toDateString()) return 'badge-today';
+    if (created.toDateString() === yesterday.toDateString()) return 'badge-yesterday';
+    return 'badge-old';
+  }
+
+  // Format timestamps for display
+  function formatDateTime(ts) {
+    const dt = new Date(ts);
+    return dt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  // --- RENDER TASKS ---
+
+  function renderTasks(container, taskArray, allowEditing = true) {
+    container.innerHTML = "";
+    taskArray.forEach(task => {
+      const div = document.createElement("div");
+      div.className = "task " + PRIORITY_CLASSES[task.priority];
+      div.draggable = allowEditing;
+      div.dataset.id = task.id;
+      div.tabIndex = 0;
+
+      // Age badge
+      const ageBadge = getTaskAgeBadge(task.createdAt);
+      const ageClass = getTaskAgeClass(task.createdAt);
+
+      // Tags HTML
+      const tagsHtml = task.tags && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
+
+      // Alarm display
+      const alarmStr = task.alarmDate ? formatDateTime(task.alarmDate) : "";
+
+      div.innerHTML = `
+        <div class="task-badge ${ageClass}">${ageBadge || ''}</div>
+        <strong>${escapeHtml(task.name)}</strong>
+        <details><summary>Description</summary><p>${escapeHtml(task.description || "No description")}</p></details>
+        <div><b>Priority:</b> ${task.priority}</div>
+        <div class="tags">${tagsHtml}</div>
+        ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
+        <div class="timestamps">
+          Created: ${formatDateTime(task.createdAt)}<br/>
+          Edited: ${formatDateTime(task.updatedAt)}<br/>
+          Moved: ${task.lastMovedAt ? formatDateTime(task.lastMovedAt) : 'N/A'}
+        </div>
+        ${allowEditing ? `
+          <div class="task-buttons" aria-label="Task actions">
+            <button class="editBtn" aria-label="Edit task ${escapeHtml(task.name)}">Edit</button>
+            <button class="deleteBtn" aria-label="Delete task ${escapeHtml(task.name)}">Delete</button>
+          </div>` : ""}
+      `;
+
+      container.appendChild(div);
+
+      if (allowEditing) {
+        div.addEventListener("dragstart", dragStart);
+        div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
+        div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
+      }
+    });
+  }
+
+  function renderBoard() {
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const filtered = filterTasks(searchInput.value);
+
+    const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
+    const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
+
+    renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
+    renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
+    renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
+    renderTasks(archiveTasksDiv, archivedTasks, false);
+  }
+
+  function filterTasks(term) {
+    term = term.trim().toLowerCase();
+    if (!term) return tasks;
+    return tasks.filter(t =>
+      t.name.toLowerCase().includes(term) ||
+      (t.description && t.description.toLowerCase().includes(term)) ||
+      (t.tags && t.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+  }
+
+  // --- ADD TASK FORM ---
+
   showAddTodoBtn.addEventListener("click", () => {
     addFormTodo.classList.remove("hidden");
     addFormTodo.setAttribute("aria-hidden", "false");
+    addFormTodo.querySelector("#todoName").focus();
+    showAddTodoBtn.setAttribute("aria-expanded", "true");
     showAddTodoBtn.classList.add("hidden");
   });
 
   cancelTodoBtn.addEventListener("click", () => {
     addFormTodo.classList.add("hidden");
     addFormTodo.setAttribute("aria-hidden", "true");
+    showAddTodoBtn.setAttribute("aria-expanded", "false");
     showAddTodoBtn.classList.remove("hidden");
     clearAddForm();
   });
@@ -473,7 +600,6 @@
     document.getElementById("todoTags").value = "";
   }
 
-  // Add new task save
   saveTodoBtn.addEventListener("click", () => {
     const name = document.getElementById("todoName").value.trim();
     if (!name) return alert("Task name is required");
@@ -491,7 +617,8 @@
       tags,
       status: "todo",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      lastMovedAt: null
     });
 
     saveTasks();
@@ -499,10 +626,12 @@
     clearAddForm();
     addFormTodo.classList.add("hidden");
     addFormTodo.setAttribute("aria-hidden", "true");
+    showAddTodoBtn.setAttribute("aria-expanded", "false");
     showAddTodoBtn.classList.remove("hidden");
   });
 
-  // Drag and drop handlers (native HTML5)
+  // --- DRAG AND DROP ---
+
   let draggedTaskId = null;
 
   function dragStart(event) {
@@ -525,7 +654,10 @@
       if (columnId === "todoCol") task.status = "todo";
       else if (columnId === "inprogressCol") task.status = "inprogress";
       else if (columnId === "doneCol") task.status = "done";
-      task.updatedAt = new Date().toISOString();
+
+      task.lastMovedAt = new Date().toISOString();
+      task.updatedAt = task.lastMovedAt;
+
       saveTasks();
       renderBoard();
     }
@@ -538,15 +670,17 @@
     col.addEventListener("drop", drop);
   });
 
-  // Delete task
+  // --- DELETE TASK ---
+
   function deleteTask(id) {
-    if (!confirm("Delete this task?")) return;
+    if (!confirm("Are you sure you want to delete this task?")) return;
     tasks = tasks.filter(t => t.id !== id);
     saveTasks();
     renderBoard();
   }
 
-  // Edit modal functionality
+  // --- EDIT TASK MODAL ---
+
   let editingTaskId = null;
 
   function openEditModal(id) {
@@ -557,7 +691,7 @@
     editNameInput.value = task.name;
     editDescInput.value = task.description || "";
     editPrioritySelect.value = task.priority;
-    editAlarmInput.value = task.alarmDate ? task.alarmDate.substring(0, 16) : "";
+    editAlarmInput.value = task.alarmDate ? task.alarmDate.substring(0,16) : "";
     editTagsInput.value = task.tags.join(", ");
     editStatusSelect.value = task.status;
 
@@ -576,8 +710,10 @@
   editTaskForm.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!editingTaskId) return;
+
     const task = tasks.find(t => t.id === editingTaskId);
     if (!task) return alert("Task not found");
+
     const name = editNameInput.value.trim();
     if (!name) return alert("Task name is required");
 
@@ -594,7 +730,8 @@
     closeEditModal();
   });
 
-  // Show/hide archive
+  // --- ARCHIVE VIEW ---
+
   showArchiveBtn.addEventListener("click", () => {
     archiveSection.classList.remove("hidden");
     document.querySelector(".kanban-container").classList.add("hidden");
@@ -609,27 +746,32 @@
     showArchiveBtn.classList.remove("hidden");
   });
 
-  // Search input
+  // --- SEARCH FUNCTIONALITY ---
+
   searchInput.addEventListener("input", () => {
     renderBoard();
   });
 
-  // Notifications permissions
+  // --- NOTIFICATIONS ---
+
+  // Request permission on page load
   if ("Notification" in window) {
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission();
     }
   }
-
-  // Notifications for due alarms
+  
+  // Show notifications for due/alarm tasks within next 30 minutes or overdue
   function notifyDueTasks() {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     const now = Date.now();
     const next30min = now + 30 * 60 * 1000;
+
     tasks.forEach(task => {
       if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate) {
         const alarmTime = new Date(task.alarmDate).getTime();
-        if (alarmTime >= now && alarmTime <= next30min) {
+        if (alarmTime <= next30min && alarmTime >= now - 5 * 60 * 1000) { 
+          // anytime within 5 minutes overdue to next 30 min
           new Notification("Kanban Task Alarm", {
             body: `${task.name} is due at ${new Date(task.alarmDate).toLocaleTimeString()}`,
             tag: task.id
@@ -639,7 +781,7 @@
     });
   }
 
-  // Interval backups and notifications
+  // Set intervals for backup and alarm notifications
   setInterval(() => {
     saveTasks();
     console.log("Backup done at " + new Date().toLocaleTimeString());
@@ -649,10 +791,8 @@
     notifyDueTasks();
   }, 30 * 60 * 1000);
 
-  // Initial rendering
-  renderBoard();
+  // --- BACKUP & RESTORE ---
 
-  // Backup tasks to downloadable JSON file
   backupBtn.addEventListener("click", () => {
     const dataStr = JSON.stringify(tasks, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
@@ -664,7 +804,6 @@
     URL.revokeObjectURL(url);
   });
 
-  // Restore tasks from JSON file input
   restoreBtn.addEventListener("click", () => {
     importInput.click();
   });
@@ -689,9 +828,12 @@
       }
     };
     reader.readAsText(file);
-    importInput.value = ""; // reset for next import
+    importInput.value = ""; // reset input
   });
-</script>
 
+  // Initial render
+  renderBoard();
+
+</script>
 </body>
 </html>
