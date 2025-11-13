@@ -2,17 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Kanban Board</title>
+<title>Kanban Board – Glass, Shortcuts, Robust Modal</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #43508c 0%, #a9b9e2 100%);
     color: #e3e6e8;
-    margin: 0;
-    padding: 27px 0 0 0;
-    max-width: 1120px;
-    margin-left:auto;
-    margin-right:auto;
+    margin: 0; padding: 27px 0 0 0;
+    max-width: 1120px; margin-left:auto; margin-right:auto;
   }
   h1 {
     margin: 0 0 18px 0;
@@ -22,113 +19,102 @@
     padding-left: 18px;
   }
   .topbar-flex {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px 0;
+    display: flex; align-items: center; gap: 6px; margin: 0 0 14px 0;
     padding: 10px 15px 8px 18px;
-    background: rgba(225, 235, 255, 0.18);
-    border-radius: 19px;
-    box-shadow: 0 2px 22px rgba(50,70,140,0.16);
-    backdrop-filter: blur(12px);
+    background: rgba(225, 235, 255, 0.15);
+    border-radius: 18px;
+    box-shadow: 0 2px 21px rgba(50,70,140,0.13);
+    backdrop-filter: blur(13px);
     flex-wrap: wrap;
   }
   .topbar-flex button {
-    background: rgba(255,255,255,0.135);
-    color: #294673;
-    font-size: 0.97em;
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    cursor: pointer;
-    transition: background 0.16s;
-    font-weight: 600;
-    min-width: 0;
-    line-height: 1.15;
+    background: rgba(255,255,255,0.15);
+    color: #24385e;
+    font-size: 0.96em;
+    border: none; border-radius: 8px; padding: 5.5px 13.5px;
+    cursor: pointer; transition: background 0.18s; font-weight: 700;
+    position: relative; min-width: 0; line-height: 1.15; margin-right: 0;
   }
-  .topbar-flex button:active {
-    background: rgba(45,65,130,0.24);
-    color: #e3e6e8;
-  }
-  .topbar-flex button[aria-label]::after {
-    content: attr(aria-label);
-    visibility: hidden;
-    font-size: 0.7em;
-    position: absolute;
-    left: -99999px;
-  }
-  .topbar-flex .shortcut {
-    font-size:0.81em;
-    color:#6a9adf;
-    font-weight:700;
-    margin-left: 2px;
-    margin-right: 1px;
-    background: transparent;
+  .topbar-flex button:active, .topbar-flex button:focus { background: rgba(45,65,130,0.24); color: #fff; }
+  .shortcut {
+    font-size:0.82em;
+    color:#242d45;
+    background: #dbe7fa;
+    font-weight:800;
+    letter-spacing: .5px;
+    margin-left: 4px;
+    margin-right:0;
+    padding: 1.3px 5.5px;
+    border-radius:5px;
+    outline: 1.2px solid #6176a7;
+    box-shadow: 0 1.5px 7px #202e4c1c;
+    opacity:.87;
+    vertical-align:middle;
     pointer-events:none;
+    user-select:none;
   }
   .topbar-flex input[type="search"] {
-    border-radius: 8px;
+    border-radius: 7px;
     border: none;
-    padding: 6px 11px;
-    font-size: 0.97em;
-    width: 120px;
-    margin: 0 2px 0 0;
-    background: #f5f7fd99;
+    padding: 5px 12px;
+    font-size: 0.96em;
+    width: 110px;
+    margin: 0 2px 0 1.5px;
+    background: #f4f7fdad;
     color: #205070;
-    transition: background 0.14s;
+    transition: background 0.13s;
   }
-  .topbar-flex input[type="search"]:focus {
-    background: #e2ecfb;
-  }
+  .topbar-flex input[type="search"]:focus { background: #e2ecfb; }
   .topbar-flex input[type="file"] { display:none; }
   #addFormTodo {
-    display: flex; flex-wrap: wrap; gap: 10px 17px; max-width: 470px;
+    display: flex; flex-wrap: wrap; gap: 10px 17px; max-width: 420px;
     background: rgba(255,255,255,0.20);
     border-radius: 14px; box-shadow: 0 2px 22px rgba(43,54,120,0.07);
-    padding: 13px 19px 13px 17px; margin: 12px 0 18px 18px;
-    color: #24335a; backdrop-filter: blur(15px);
+    padding: 12px 17px 10px 15px; margin: 13px 0 16px 18px;
+    color: #24335a; backdrop-filter: blur(14px);
   }
-  #addFormTodo label { flex: 0 0 200px; font-weight:600; font-size:0.98em;}
+  #addFormTodo label { flex: 0 0 170px; font-weight:600; font-size:0.98em;}
   #addFormTodo input, #addFormTodo select, #addFormTodo textarea {
-    font-size: 0.97em; padding: 5.5px 8px; border-radius: 7px;
+    font-size: 0.96em; padding: 5px 8px; border-radius: 7px;
     border: none; margin-top: 2px; background: #eef3fa;
     color: #172850; width: 100%;
   }
-  #addFormTodo textarea { min-height: 40px;}
-  #addFormTodo .buttons-row { width: 100%; display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px;}
+  #addFormTodo textarea { min-height: 38px;}
+  #addFormTodo .buttons-row { width: 100%; display: flex; gap: 11px; justify-content: flex-end; margin-top: 4px;}
+  .hidden { display: none !important;}
   .kanban-container {
     display: flex;
-    gap: 14px;
+    gap: 10px;
     min-height: 480px;
     margin-top: 5px;
     justify-content: center;
   }
   .column {
-    flex: 1 1 260px;
-    min-width: 220px;
-    max-width: 315px;
-    background: rgba(255,255,255,0.22);
-    border-radius: 16px;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    padding: 15px 7px 7px 7px;
+    flex: 1 1 235px;
+    min-width: 180px;
+    max-width: 320px;
+    background: rgba(255,255,255,0.20);
+    border-radius: 15px;
+    backdrop-filter: blur(19px);
+    -webkit-backdrop-filter: blur(19px);
+    padding: 14px 6px 7px 7px;
     margin: 0;
     display: flex; flex-direction: column;
-    box-shadow: 0 7px 34px 0 rgba(62,82,130,0.16);
+    box-shadow: 0 7px 30px 0 rgba(62,82,130,0.16);
   }
   .column h3 {
     text-align: center;
     font-weight: 700;
-    font-size: 1.12rem;
+    font-size: 1.09rem;
     letter-spacing:1.06px;
   }
   .task {
-    background: rgba(255,255,255,0.16);
-    border-radius: 11px;
-    padding: 9px 14px 9px 13px;
-    margin-bottom: 9px;
-    border-left: 5px solid transparent;
-    box-shadow: 0 2.5px 12px #5469a62c;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 8px 11px 7px 11px;
+    margin-bottom: 8px;
+    border-left: 4px solid transparent;
+    box-shadow: 0 2.5px 13px #5469a62c;
     color: #f3f5f7;
     font-size: 0.98rem;
     word-break: break-word;
@@ -137,23 +123,23 @@
     flex-direction: column;
     gap: 3px;
   }
-  .task:hover { box-shadow: 0 7px 23px #3d527640; }
+  .task:hover { box-shadow: 0 5px 17px #3d527640; }
   .priority-low { border-left-color: #43a047; }
   .priority-medium { border-left-color: #fb8c00; }
   .priority-major { border-left-color: #e53935; }
-  .task .tags { color: #cfd8dc; font-size: 0.85rem; margin-bottom: 2px;}
+  .task .tags { color: #cfd8dc; font-size: 0.81rem;}
   .task .tags span {
     background: #e3eefd33; color:#294f6d;
     padding: 2px 8px;
-    border-radius: 9px;
-    margin-right: 4px;
+    border-radius: 8px;
+    margin-right: 3px;
     font-size: 0.90em;
   }
-  .task .task-buttons { display: flex; justify-content: flex-end; gap: 7px; margin-top: 4px; }
+  .task .task-buttons { display: flex; justify-content: flex-end; gap: 7px; margin-top: 2.5px;}
   .task button {
     background: rgba(255,255,255,0.14);
     color: #1f3149;
-    font-size: 0.78rem;
+    font-size: 0.77rem;
     padding: 3px 7px;
     border-radius: 6px;
     border: none;
@@ -167,7 +153,7 @@
     top: 7px;
     right: 8px;
     font-size: 0.67rem;
-    padding: 1.8px 7px;
+    padding: 1.7px 7px;
     border-radius: 8px;
     background: #97ea9b;
     color: #248c44;
@@ -180,7 +166,7 @@
   .badge-yesterday { background: #ffecbe; color: #c47d12;}
   .badge-old { background: #ffd1cf; color: #a6424e;}
   .more-detail-link {
-    font-size:0.86em;
+    font-size:0.88em;
     color: #bddfff;
     cursor:pointer;
     text-decoration:underline;
@@ -190,58 +176,61 @@
     background:none;
     padding:0;
   }
-  .history-details { font-size: 0.79em; color:#bed8e2; font-style:italic; margin:2px 0 4px 0; }
+  .history-details { font-size: 0.78em; color:#bed8e2; font-style:italic; margin:2px 0 4px 0; }
   #archiveSection {
     margin-top: 20px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.14);
     backdrop-filter: blur(13px);
     color: #e3e6e8;
-    border-radius: 14px;
-    box-shadow: 0 6px 24px #3e427033;
-    padding: 16px 2vw 22px 2vw;
+    border-radius: 12px;
+    box-shadow: 0 6px 22px #3e427033;
+    padding: 14px 2vw 17px 2vw;
   }
-  #archiveSection h2 { margin-bottom: 11px; }
+  #archiveSection h2 { margin-bottom: 9px; }
   #archiveTasks .task { cursor: default; }
-  /* Modal (Edit) */
   .modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(34,55,92,0.11); display: flex;
+    background: rgba(34,55,92,0.13); display: flex;
     justify-content: center; align-items: center; z-index: 997;
   }
   .modal {
-    background: rgba(245,250,255,0.22);
-    border-radius: 14px;
-    width: 340px;
-    max-width: 94vw;
-    max-height: 98vh;
-    overflow-y: auto;
-    padding: 15px 16px 13px 14px;
+    background: rgba(245,250,255,0.24);
+    border-radius: 10px;
+    width: 320px;
+    max-width: 94vw; max-height: 97vh; overflow-y: auto;
+    padding: 15px 13px 13px 13px;
     color: #283847;
-    box-shadow: 0 8px 33px #4a6b9a19;
-    display: flex;
-    flex-direction: column;
-    backdrop-filter: blur(13px);
+    box-shadow: 0 8px 25px #4a6b9a16;
+    display: flex; flex-direction: column;
+    backdrop-filter: blur(10px);
   }
-  .modal-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.08rem; margin-bottom: 9px; color: #213450;}
-  .modal-close { cursor: pointer; font-size: 1.17rem; color: #596; border: none; background: none;}
+  .modal-header {
+    display: flex; justify-content: space-between;
+    font-weight: 700; font-size: 1.07rem; margin-bottom: 9px; color: #213450;
+    align-items: center;
+  }
+  .modal-close {
+    cursor: pointer; font-size: 1.14rem; color: #596; border: none; background: none;font-weight:900;
+    margin-left:9px; margin-top:0;
+  }
   .modal-close:hover { color: #e53935; }
-  .modal label { font-weight:600; font-size:0.95em; }
+  .modal label { font-weight:600; font-size:0.94em;}
   .modal input, .modal select, .modal textarea {
-    font-size: 1em; padding: 6px 9px; margin-top: 2px; background: #f8fafc;
-    color: #172850; border-radius: 8px; border: none;
+    font-size: 1em; padding: 6px 7px; margin-top: 2px; background: #f8fafc;
+    color: #172850; border-radius: 7px; border: none;
     width: 100%; margin-bottom: 5px;
   }
   .modal textarea { min-height: 29px;}
-  .buttons-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;}
+  .buttons-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px;}
 </style>
 </head>
 <body>
 <h1>Kanban Board</h1>
 <div class="topbar-flex">
-  <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task<span class="shortcut">(Alt+A)</span></button>
-  <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup<span class="shortcut">(Alt+B)</span></button>
-  <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore<span class="shortcut">(Alt+R)</span></button>
-  <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive<span class="shortcut">(Alt+V)</span></button>
+  <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task <span class="shortcut">Alt+A</span></button>
+  <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup <span class="shortcut">Alt+B</span></button>
+  <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore <span class="shortcut">Alt+R</span></button>
+  <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive <span class="shortcut">Alt+V</span></button>
   <input type="file" id="importInput" accept="application/json" />
   <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F to focus" />
 </div>
@@ -277,7 +266,7 @@
   <div class="modal">
     <div class="modal-header">
       <div>Edit Task</div>
-      <button id="closeEditModal" class="modal-close" type="button">&times;</button>
+      <button id="closeEditModal" class="modal-close" type="button" title="Close">&times;</button>
     </div>
     <form id="editTaskForm" autocomplete="off">
       <label>Task Name<input type="text" id="editName" required /></label>
@@ -309,6 +298,10 @@
 let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
 const todoTasksDiv = document.getElementById("todoTasks"), inprogressTasksDiv = document.getElementById("inprogressTasks"), doneTasksDiv = document.getElementById("doneTasks"), archiveTasksDiv = document.getElementById("archiveTasks"), archiveSection = document.getElementById("archiveSection"), showAddTodoTop = document.getElementById("showAddTodoTop"), addFormTodo = document.getElementById("addFormTodo"), saveTodoBtn = document.getElementById("saveTodo"), cancelTodoBtn = document.getElementById("cancelTodo"), searchInput = document.getElementById("searchInput"), showArchiveBtn = document.getElementById("showArchiveBtn"), closeArchiveBtn = document.getElementById("closeArchive"), backupBtn = document.getElementById("backupBtn"), restoreBtn = document.getElementById("restoreBtn"), importInput = document.getElementById("importInput"), editModalBackdrop = document.getElementById("editModalBackdrop"), closeEditModalBtn = document.getElementById("closeEditModal"), editTaskForm = document.getElementById("editTaskForm"), editNameInput = document.getElementById("editName"), editDescInput = document.getElementById("editDesc"), editPrioritySelect = document.getElementById("editPriority"), editAlarmInput = document.getElementById("editAlarm"), editTagsInput = document.getElementById("editTags"), editStatusSelect = document.getElementById("editStatus");
 const PRIORITY_CLASSES = { low: "priority-low", medium: "priority-medium", major: "priority-major" };
+
+let editingTaskId = null;
+
+// --- Render UI Helpers ---
 function saveTasks() { localStorage.setItem("kanbanTasks", JSON.stringify(tasks)); }
 function escapeHtml(text) { if (!text) return ""; return text.replace(/[&<>"']/g, m => ({ '&': "&amp;", '<': "&lt;", '>': "&gt;", '"': "&quot;", "'": "&#39;" })[m]); }
 function getTaskAgeBadge(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'Today'; if (created.toDateString() === yesterday.toDateString()) return 'Yesterday'; return null; }
@@ -439,7 +432,6 @@ function deleteTask(id) {
   tasks = tasks.filter(t => t.id !== id); saveTasks(); renderBoard();
 }
 // Edit modal
-let editingTaskId = null;
 function openEditModal(id) {
   editingTaskId = id;
   const task = tasks.find(t => t.id === id);
@@ -451,9 +443,12 @@ function openEditModal(id) {
   editTagsInput.value = task.tags.join(", ");
   editStatusSelect.value = task.status;
   editModalBackdrop.classList.remove("hidden");
-  setTimeout(() => { editNameInput.focus(); }, 130);
+  setTimeout(() => { editNameInput.focus(); }, 110);
 }
-function closeEditModal() { editingTaskId = null; editModalBackdrop.classList.add("hidden"); }
+function closeEditModal() {
+  editingTaskId = null;
+  editModalBackdrop.classList.add("hidden");
+}
 closeEditModalBtn.addEventListener("click", closeEditModal);
 document.getElementById("cancelEdit").addEventListener("click", closeEditModal);
 editModalBackdrop.addEventListener("mousedown", function(e) { if (e.target === this) closeEditModal(); });
@@ -524,5 +519,32 @@ backupBtn.addEventListener("click", () => {
   a.click(); URL.revokeObjectURL(url);
 });
 restoreBtn.addEventListener("click", () => importInput.click());
-importInput.addEventListener("change", (event)
-
+importInput.addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        tasks = imported; saveTasks(); renderBoard();
+        alert("Tasks restored successfully!");
+      } else alert("Invalid file format.");
+    } catch (error) { alert("Error reading file: " + error.message);}
+  };
+  reader.readAsText(file);
+  importInput.value = "";
+});
+document.addEventListener("keydown", function(e){
+  // Shortcuts: Alt + (A,B,R,F,V) for add, backup, restore, search, archive
+  if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) return;
+  if      (e.altKey && e.key.toLowerCase() === "a") { showAddTodoTop.click(); e.preventDefault(); }
+  else if (e.altKey && e.key.toLowerCase() === "b") { backupBtn.click(); e.preventDefault(); }
+  else if (e.altKey && e.key.toLowerCase() === "r") { restoreBtn.click(); e.preventDefault(); }
+  else if (e.altKey && e.key.toLowerCase() === "f") { searchInput.focus(); e.preventDefault(); }
+  else if (e.altKey && e.key.toLowerCase() === "v") { showArchiveBtn.click(); e.preventDefault(); }
+});
+renderBoard();
+</script>
+</body>
+</html>
