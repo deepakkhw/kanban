@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Kanban Archive</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Archived Tasks (Older than 7 days)</h1>
+  <button id="backBtn">Back to Main Board</button>
+  <div id="archiveBoard" class="board"></div>
+
+  <script type="module">
+    import { createTaskElement } from './js/tasks.js';
+
+    async function loadArchivedTasks() {
+      const tasks = JSON.parse(localStorage.getItem('kanbanTasks')) || [];
+      const archiveBoard = document.getElementById('archiveBoard');
+      const now = new Date();
+
+      tasks.forEach(task => {
+        const createdDate = new Date(task.createdDate);
+        if ((now - createdDate) / (1000*60*60*24) > 7) {
+          const taskElem = createTaskElement(task);
+          archiveBoard.appendChild(taskElem);
+        }
+      });
+      if(archiveBoard.children.length === 0) {
+        archiveBoard.textContent = 'No archived tasks.';
+      }
+    }
+
+    document.getElementById('backBtn').onclick = () => {
+      window.location.href = 'index.html';
+    };
+
+    window.onload = loadArchivedTasks;
+  </script>
+</body>
+</html>
