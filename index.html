@@ -1,56 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kanban Board - Main</title>
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <title>Kanban Board</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 10px;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1, h3 {
+      margin: 0 0 10px 0;
+    }
+    .kanban-container {
+      display: flex;
+      gap: 10px;
+    }
+    .column {
+      flex-grow: 1;
+      background: #fff;
+      border-radius: 6px;
+      padding: 10px;
+      min-height: 300px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .task {
+      background: #e4e9f2;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: grab;
+      border-left: 6px solid transparent;
+    }
+    .priority-low { border-left-color: #4caf50; }
+    .priority-medium { border-left-color: #ff9800; }
+    .priority-major { border-left-color: #f44336; }
+    .hidden { display: none; }
+    .add-task-btn {
+      margin-top: 10px;
+      padding: 6px 10px;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+    }
+    input[type="text"], input[type="datetime-local"], select, textarea {
+      width: 95%;
+      padding: 5px;
+      font-size: 1rem;
+    }
+    .task-form {
+      background: #eef1f7;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    .search-input {
+      margin-bottom: 15px;
+      width: 96%;
+      padding: 6px;
+      font-size: 1.1rem;
+    }
+    #archiveSection {
+      margin-top: 30px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 3px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
+
 <h1>Kanban Board</h1>
-<a href="archive.html" id="archiveLink">View Archive (Tasks older than 7 days)</a>
+<input type="search" id="searchInput" placeholder="Search tasks..." class="search-input" />
 
-<form id="taskForm" autocomplete="off" novalidate>
-  <label for="taskName">Task Name *</label>
-  <input type="text" id="taskName" placeholder="Enter task name" required/>
+<div class="kanban-container">
+  <div class="column" id="todoCol">
+    <h3>To-Do</h3>
+    <div id="todoTasks"></div>
+    <button class="add-task-btn" id="showAddTodo">+ Add New Task</button>
+    <div id="addFormTodo" class="task-form hidden">
+      <label>Task Name <input type="text" id="todoName"/></label>
+      <label>Description<textarea id="todoDesc" rows="3"></textarea></label>
+      <label>Priority
+        <select id="todoPriority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="major">Major</option>
+        </select>
+      </label>
+      <label>Alarm Date & Time <input type="datetime-local" id="todoAlarm"/></label>
+      <label>Tags (comma separated) <input type="text" id="todoTags"/></label>
+      <button id="saveTodo">Save</button>
+      <button id="cancelTodo">Cancel</button>
+    </div>
+  </div>
 
-  <label for="taskDescription">Description</label>
-  <textarea id="taskDescription" placeholder="Describe your task"></textarea>
+  <div class="column" id="inprogressCol">
+    <h3>In Progress</h3>
+    <div id="inprogressTasks"></div>
+  </div>
 
-  <label for="taskPriority">Priority</label>
-  <select id="taskPriority">
-    <option value="low">Low</option>
-    <option value="medium">Medium</option>
-    <option value="high">High</option>
-  </select>
-
-  <label for="taskColumn">Column</label>
-  <select id="taskColumn">
-    <option value="todo">To Do</option>
-    <option value="inprogress">In Progress</option>
-    <option value="done">Done</option>
-  </select>
-
-  <label for="taskAlarm">Alarm Time (optional)</label>
-  <input type="datetime-local" id="taskAlarm" />
-
-  <button type="submit">Add Task</button>
-</form>
-
-<div class="buttons-bar">
-  <button id="exportBtn">Backup Tasks (Download JSON)</button>
-  <button id="importBtn">Restore Tasks (Upload JSON)</button>
-  <input type="file" id="importFile" accept=".json" style="display:none"/>
+  <div class="column" id="doneCol">
+    <h3>Done</h3>
+    <div id="doneTasks"></div>
+  </div>
 </div>
 
-<div id="board">
-  <div class="column" id="todo"><h2>To Do</h2></div>
-  <div class="column" id="inprogress"><h2>In Progress</h2></div>
-  <div class="column" id="done"><h2>Done</h2></div>
-</div>
+<section id="archiveSection" class="hidden">
+  <h2>Archive (tasks older than 7 days)</h2>
+  <div id="archiveTasks"></div>
+  <button id="closeArchive">Close Archive</button>
+</section>
 
-<div id="snackbar"></div>
+<button id="showArchiveBtn">Show Archive</button>
 
-<script type="module" src="js/app.js"></script>
+<script>
+  // Kanban task array structure
+  // id: unique string
+  // name, description, priority, alarmDate, tags, status, createdAt, updatedAt
+
+  let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
+
+  const todoTasksDiv = document.getElementById("todoTasks");
+  const inprogressTasksDiv = document.getElementById("inprogressTasks");
+  const doneTasksDiv = document.getElementById("doneTasks");
+  const archiveTasksDiv = document.getElementById("archiveTasks");
+  const archiveSection = document.getElementById("archiveSection");
+
+  const showAddTodoBtn = document.getElementById("showAddTodo");
+  const addFormTodo = document.getElementById("addFormTodo");
+  const saveTodoBtn = document.getElementById("saveTodo");
+  const cancelTodoBtn = document.getElementById("cancelTodo");
+
+  const showArchiveBtn = document.getElementById("showArchiveBtn");
+  const closeArchiveBtn = document.getElementById("closeArchive");
+  const searchInput = document.getElementById("searchInput");
+
+  const PRIORITY_CLASSES = {
+    low: "priority-low",
+    medium: "priority-medium",
+    major: "priority-major"
+  };
+
+  // Save tasks to localStorage
+  function saveTasks() {
+    localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+  }
+
+  // Render tasks given an array and container div
+  function renderTasks(container, taskArray) {
+    container.innerHTML = "";
+    taskArray.forEach(task => {
+      const div = document.createElement("div");
+      div.className = "task " + PRIORITY_CLASSES[task.priority];
+      div.draggable = true;
+      div.dataset.id = task.id;
+
+      let tagsStr = task.tags && task.tags.length ? "Tags: " + task.tags.join(", ") : "";
+      let alarmStr = task.alarmDate ? "Alarm: " + new Date(task.alarmDate).toLocaleString() : "";
+
+      div.innerHTML = `
+        <strong>${task.name}</strong><br/>
+        <details><summary>Description</summary><p>${task.description || "No description"}</p></details>
+        <span>Priority: ${task.priority}</span><br/>
+        <span>${tagsStr}</span><br/>
+        <span>${alarmStr}</span><br/>
+        <button class="editBtn">Edit</button>
+        <button class="deleteBtn">Delete</button>
+      `;
+
+      container.appendChild(div);
+
+      // Drag event handlers
+      div.addEventListener("dragstart", dragStart);
+
+      // Edit button
+      div.querySelector(".editBtn").addEventListener("click", () => editTask(task.id));
+      // Delete button
+      div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
+    });
+  }
+
+  // Render all columns and archive
+  function renderBoard() {
+    const now = Date.now();
+    const archiveThreshold = now - 7 * 24 * 60 * 60 * 1000;
+
+    const filtered = filterTasks(searchInput.value);
+
+    const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > archiveThreshold);
+    const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= archiveThreshold);
+
+    renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
+    renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
+    renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
+    renderTasks(archiveTasksDiv, archivedTasks);
+  }
+
+  // Filter tasks based on search input
+  function filterTasks(term) {
+    term = term.trim().toLowerCase();
+    if (!term) return tasks;
+    return tasks.filter(t =>
+      t.name.toLowerCase().includes(term) ||
+      (t.description && t.description.toLowerCase().includes(term)) ||
+      (t.tags && t.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+  }
+
+  // Add new task UI toggle
+  showAddTodoBtn.addEventListener("click", () => {
+    addFormTodo.classList.remove("hidden");
+    showAddTodoBtn.classList.add("hidden");
+  });
+  cancelTodoBtn.addEventListener("click", () => {
+    addFormTodo.classList.add("hidden");
+    showAddTodoBtn.classList.remove("hidden");
+    clearForm();
+  });
+
+  function clearForm() {
+    document.getElementById("todoName").value = "";
+    document.getElementById("todoDesc").value = "";
+    document.getElementById("todoPriority").value = "medium";
+    document.getElementById("todoAlarm").value = "";
+    document.getElementById("todoTags").value = "";
+  }
+
+  // Add new task save
+  saveTodoBtn.addEventListener("click", () => {
+    const name = document.getElementById("todoName").value.trim();
+    if (!name) {
+      alert("Task name is required");
+      return;
+    }
+    const desc = document.getElementById("todoDesc").value.trim();
+    const priority = document.getElementById("todoPriority").value;
+    const alarmDate = document.getElementById("todoAlarm").value;
+    const tags = document.getElementById("todoTags").value.split(",").map(t => t.trim()).filter(Boolean);
+
+    tasks.push({
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      name, description: desc, priority,
+      alarmDate: alarmDate ? new Date(alarmDate).toISOString() : null,
+      tags,
+      status: "todo",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    saveTasks();
+    renderBoard();
+    clearForm();
+    addFormTodo.classList.add("hidden");
+    showAddTodoBtn.classList.remove("hidden");
+  });
+
+  // Drag and drop handlers
+  let draggedTaskId = null;
+
+  function dragStart(event) {
+    draggedTaskId = event.target.dataset.id;
+    // Set drag image if needed
+  }
+
+  function dragOver(event) {
+    event.preventDefault();
+  }
+
+  function drop(event) {
+    event.preventDefault();
+    const column = event.currentTarget.id;
+    if (!draggedTaskId) return;
+
+    let task = tasks.find(t => t.id === draggedTaskId);
+    if (task) {
+      // Update status depending on drop container id
+      if (column === "todoCol") {
+        task.status = "todo";
+      } else if (column === "inprogressCol") {
+        task.status = "inprogress";
+      } else if (column === "doneCol") {
+        task.status = "done";
+      }
+      task.updatedAt = new Date().toISOString();
+      saveTasks();
+      renderBoard();
+    }
+    draggedTaskId = null;
+  }
+
+  // Setup droppable columns
+  ["todoCol", "inprogressCol", "doneCol"].forEach(id => {
+    document.getElementById(id).addEventListener("dragover", dragOver);
+    document.getElementById(id).addEventListener("drop", drop);
+  });
+
+  // Edit task
+  function editTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return alert("Task not found");
+
+    // Simple prompt-based editing for demo (can replace with form dialog)
+    const newName = prompt("Edit Task Name", task.name);
+    if (newName === null) return; // cancel
+
+    const newDesc = prompt("Edit Description", task.description);
+    if (newDesc === null) return;
+
+    const newPriority = prompt("Priority (low, medium, major)", task.priority);
+    if (newPriority === null) return;
+
+    const newTags = prompt("Tags (comma separated)", task.tags.join(", "));
+    if (newTags === null) return;
+
+    task.name = newName.trim();
+    task.description = newDesc.trim();
+    task.priority = ["low", "medium", "major"].includes(newPriority) ? newPriority : task.priority;
+    task.tags = newTags.split(",").map(t => t.trim()).filter(Boolean);
+    task.updatedAt = new Date().toISOString();
+
+    saveTasks();
+    renderBoard();
+  }
+
+  // Delete task
+  function deleteTask(id) {
+    if (!confirm("Delete this task?")) return;
+    tasks = tasks.filter(t => t.id !== id);
+    saveTasks();
+    renderBoard();
+  }
+
+  // Show/hide archive
+  showArchiveBtn.addEventListener("click", () => {
+    archiveSection.classList.remove("hidden");
+    document.querySelector(".kanban-container").classList.add("hidden");
+    showArchiveBtn.classList.add("hidden");
+  });
+
+  closeArchiveBtn.addEventListener("click", () => {
+    archiveSection.classList.add("hidden");
+    document.querySelector(".kanban-container").classList.remove("hidden");
+    showArchiveBtn.classList.remove("hidden");
+  });
+
+  // Search functionality
+  searchInput.addEventListener("input", () => {
+    renderBoard();
+  });
+
+  // Notifications
+  function notifyDueTasks() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+      return;
+    }
+    const now = Date.now();
+    const next30Min = now + 30 * 60 * 1000;
+
+    tasks.forEach(task => {
+      if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate) {
+        let alarmTime = new Date(task.alarmDate).getTime();
+        if (alarmTime >= now && alarmTime <= next30Min) {
+          new Notification("Kanban Task Alarm", {
+            body: `${task.name} is due at ${new Date(task.alarmDate).toLocaleTimeString()}`,
+            tag: task.id
+          });
+        }
+      }
+    });
+  }
+
+  // Interval backup and notification setup
+  setInterval(() => {
+    // Backup every 4 hours (here just saving to localStorage)
+    saveTasks();
+    console.log("Backup done at " + new Date().toLocaleTimeString());
+  }, 4 * 60 * 60 * 1000);
+
+  setInterval(() => {
+    // Notifications every 30 minutes
+    notifyDueTasks();
+  }, 30 * 60 * 1000);
+
+  // Initial render
+  renderBoard();
+</script>
+
 </body>
 </html>
