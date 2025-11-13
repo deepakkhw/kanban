@@ -2,47 +2,93 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Kanban Board</title>
+<title>Kanban Board - Glass Theme with Shortcuts</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #43508c 0%, #a9b9e2 100%);
-    color: #e3e6e8; margin: 0; padding: 26px 0 0 0;
-    max-width: 1180px; margin-left:auto; margin-right:auto;
+    color: #e3e6e8;
+    margin: 0;
+    padding: 27px 0 0 0;
+    max-width: 1120px;
+    margin-left:auto;
+    margin-right:auto;
   }
-  h1 { margin: 0 0 18px 0; letter-spacing: 2px; font-weight: 800; text-shadow: 0 4px 24px #1a213a53;}
+  h1 {
+    margin: 0 0 18px 0;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-shadow: 0 4px 18px #1a213a53;
+    padding-left: 18px;
+  }
   .topbar-flex {
-    display: flex; align-items: center; gap: 10px; margin: 0 0 10px 0;
-    background: rgba(230,238,255,0.11); border-radius: 18px; padding: 8px 16px 6px 19px;
-    box-shadow: 0 3px 30px rgba(50,70,140,0.13); backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px 0;
+    padding: 10px 15px 8px 18px;
+    background: rgba(225, 235, 255, 0.18);
+    border-radius: 19px;
+    box-shadow: 0 2px 22px rgba(50,70,140,0.16);
+    backdrop-filter: blur(12px);
+    flex-wrap: wrap;
   }
-  .topbar-flex button, .topbar-flex label {
-    background: rgba(255,255,255,0.13); color: #283850;
-    font-size: 0.97em; border: none; border-radius: 9px;
-    padding: 6px 13px;
-    cursor: pointer; transition: background 0.2s;
-    font-weight: 600; margin-right: 2px;
-    min-width: 0; line-height: 1.15;
+  .topbar-flex button {
+    background: rgba(255,255,255,0.135);
+    color: #294673;
+    font-size: 0.97em;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.16s;
+    font-weight: 600;
+    min-width: 0;
+    line-height: 1.15;
   }
-  .topbar-flex button:hover {
-    background: rgba(45,65,130,0.25); color: #e3e6e8;
+  .topbar-flex button:active {
+    background: rgba(45,65,130,0.24);
+    color: #e3e6e8;
+  }
+  .topbar-flex button[aria-label]::after {
+    content: attr(aria-label);
+    visibility: hidden;
+    font-size: 0.7em;
+    position: absolute;
+    left: -99999px;
+  }
+  .topbar-flex .shortcut {
+    font-size:0.81em;
+    color:#6a9adf;
+    font-weight:700;
+    margin-left: 2px;
+    margin-right: 1px;
+    background: transparent;
+    pointer-events:none;
   }
   .topbar-flex input[type="search"] {
-    border-radius: 8px; border: none; padding: 5px 9px;
-    font-size: 0.98em; width: 116px; margin: 0 5px 0 0;
-    background: #f4f7fb99;
-    color: #205070; transition: background 0.14s;
+    border-radius: 8px;
+    border: none;
+    padding: 6px 11px;
+    font-size: 0.97em;
+    width: 120px;
+    margin: 0 2px 0 0;
+    background: #f5f7fd99;
+    color: #205070;
+    transition: background 0.14s;
   }
-  .topbar-flex input[type="search"]:focus { background: #deeafd;}
-  .hidden { display: none !important;}
+  .topbar-flex input[type="search"]:focus {
+    background: #e2ecfb;
+  }
+  .topbar-flex input[type="file"] { display:none; }
   #addFormTodo {
-    display: flex; flex-wrap: wrap; gap: 9px 16px; max-width: 470px;
+    display: flex; flex-wrap: wrap; gap: 10px 17px; max-width: 470px;
     background: rgba(255,255,255,0.20);
     border-radius: 14px; box-shadow: 0 2px 22px rgba(43,54,120,0.07);
-    padding: 13px 19px 12px 17px; margin: 12px 0 18px 18px;
+    padding: 13px 19px 13px 17px; margin: 12px 0 18px 18px;
     color: #24335a; backdrop-filter: blur(15px);
   }
-  #addFormTodo label { flex: 0 0 204px; font-weight:600; font-size:0.98em;}
+  #addFormTodo label { flex: 0 0 200px; font-weight:600; font-size:0.98em;}
   #addFormTodo input, #addFormTodo select, #addFormTodo textarea {
     font-size: 0.97em; padding: 5.5px 8px; border-radius: 7px;
     border: none; margin-top: 2px; background: #eef3fa;
@@ -50,92 +96,154 @@
   }
   #addFormTodo textarea { min-height: 40px;}
   #addFormTodo .buttons-row { width: 100%; display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px;}
-  .kanban-container { display: flex; gap: 20px; min-height: 520px; margin-top: 5px;}
+  .kanban-container {
+    display: flex;
+    gap: 14px;
+    min-height: 480px;
+    margin-top: 5px;
+    justify-content: center;
+  }
   .column {
-    flex: 1 1 282px; min-width: 210px; max-width: 310px;
-    background: rgba(255,255,255,0.24); border-radius: 16px;
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    padding: 15px 7px 7px 7px; box-shadow: 0 8.5px 36px 0 rgba(65,82,140,0.22);
-    margin: 0; display: flex; flex-direction: column;
+    flex: 1 1 260px;
+    min-width: 220px;
+    max-width: 315px;
+    background: rgba(255,255,255,0.22);
+    border-radius: 16px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 15px 7px 7px 7px;
+    margin: 0;
+    display: flex; flex-direction: column;
+    box-shadow: 0 7px 34px 0 rgba(62,82,130,0.16);
   }
-  .column h3 { text-align: center; font-weight: 700; font-size:1.10rem; letter-spacing:1.2px;}
+  .column h3 {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.12rem;
+    letter-spacing:1.06px;
+  }
   .task {
-    background: rgba(255,255,255,0.17); border-radius: 11px;
-    padding: 9px 15px 9px 13px; margin-bottom: 9px;
-    border-left: 5px solid transparent; box-shadow: 0 2.5px 15px #4652822f;
-    color: #f3f5f7; font-size: 0.98rem; word-break: break-word; position: relative;
-    display: flex; flex-direction: column; gap: 4px;
+    background: rgba(255,255,255,0.16);
+    border-radius: 11px;
+    padding: 9px 14px 9px 13px;
+    margin-bottom: 9px;
+    border-left: 5px solid transparent;
+    box-shadow: 0 2.5px 12px #5469a62c;
+    color: #f3f5f7;
+    font-size: 0.98rem;
+    word-break: break-word;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
   }
-  .task:hover { box-shadow: 0 5px 25px #3d527640; }
+  .task:hover { box-shadow: 0 7px 23px #3d527640; }
   .priority-low { border-left-color: #43a047; }
   .priority-medium { border-left-color: #fb8c00; }
   .priority-major { border-left-color: #e53935; }
-  .task .tags { color: #cfd8dc; font-size: 0.85rem;  margin-bottom: 2px;}
+  .task .tags { color: #cfd8dc; font-size: 0.85rem; margin-bottom: 2px;}
   .task .tags span {
     background: #e3eefd33; color:#294f6d;
-    padding: 2px 8px; border-radius: 9px; margin-right: 4px; font-size: 0.90em;
+    padding: 2px 8px;
+    border-radius: 9px;
+    margin-right: 4px;
+    font-size: 0.90em;
   }
-  .task .task-buttons { display: flex; justify-content: flex-end; gap: 7px; margin-top: 6px;}
+  .task .task-buttons { display: flex; justify-content: flex-end; gap: 7px; margin-top: 4px; }
   .task button {
-    background: rgba(255,255,255,0.14); color: #1f3149; font-size: 0.78rem;
-    padding: 4px 8px; border-radius: 7px; border: none;
+    background: rgba(255,255,255,0.14);
+    color: #1f3149;
+    font-size: 0.78rem;
+    padding: 3px 7px;
+    border-radius: 6px;
+    border: none;
   }
-  .task button:hover { background: rgba(45,65,130,0.21); color: #e3e6e8;}
+  .task button:hover {
+    background: rgba(65,90,140,0.20);
+    color: #e3e6e8;
+  }
   .task-badge {
-    position: absolute; top: 7px; right: 8px;
-    font-size: 0.67rem; padding: 1.8px 7px; border-radius: 8px;
-    background: #97ea9b; color: #248c44; font-weight: 600; user-select: none;
-    text-transform: uppercase; letter-spacing: .07em; opacity: 0.95;
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    font-size: 0.67rem;
+    padding: 1.8px 7px;
+    border-radius: 8px;
+    background: #97ea9b;
+    color: #248c44;
+    font-weight: 600;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    opacity: 0.95;
   }
   .badge-yesterday { background: #ffecbe; color: #c47d12;}
   .badge-old { background: #ffd1cf; color: #a6424e;}
   .more-detail-link {
-    font-size:0.86em; color: #bddfff; cursor:pointer; text-decoration:underline; 
-    margin:2px 0 0 0; display:inline-block; border:none; background:none; padding:0;
+    font-size:0.86em;
+    color: #bddfff;
+    cursor:pointer;
+    text-decoration:underline;
+    margin:2px 0 0 0;
+    display:inline-block;
+    border:none;
+    background:none;
+    padding:0;
   }
   .history-details { font-size: 0.79em; color:#bed8e2; font-style:italic; margin:2px 0 4px 0; }
-  /* Archive */
   #archiveSection {
-    margin-top: 24px; background: rgba(255,255,255,0.19);
-    backdrop-filter: blur(15px); color: #e3e6e8; border-radius: 14px; 
-    box-shadow: 0 8px 29px #3e427034; padding: 16px 3vw 26px 3vw;
+    margin-top: 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(13px);
+    color: #e3e6e8;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px #3e427033;
+    padding: 16px 2vw 22px 2vw;
   }
   #archiveSection h2 { margin-bottom: 11px; }
   #archiveTasks .task { cursor: default; }
   /* Modal (Edit) */
   .modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(34,55,92,0.14); display: flex;
+    background: rgba(34,55,92,0.11); display: flex;
     justify-content: center; align-items: center; z-index: 997;
   }
   .modal {
-    background: rgba(245,250,255,0.25);
-    border-radius: 14px; width: 340px; max-width: 94vw; max-height: 98vh; overflow-y: auto;
-    padding: 17px 16px 15px 14px; color: #283847;
-    box-shadow: 0 8px 30px #4a6b9a15; display: flex; flex-direction: column;
+    background: rgba(245,250,255,0.22);
+    border-radius: 14px;
+    width: 340px;
+    max-width: 94vw;
+    max-height: 98vh;
+    overflow-y: auto;
+    padding: 15px 16px 13px 14px;
+    color: #283847;
+    box-shadow: 0 8px 33px #4a6b9a19;
+    display: flex;
+    flex-direction: column;
     backdrop-filter: blur(13px);
   }
-  .modal-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.08rem; margin-bottom: 10px; color: #213450;}
-  .modal-close { cursor: pointer; font-size: 1.23rem; color: #596; border: none; background: none;}
+  .modal-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.08rem; margin-bottom: 9px; color: #213450;}
+  .modal-close { cursor: pointer; font-size: 1.17rem; color: #596; border: none; background: none;}
   .modal-close:hover { color: #e53935; }
   .modal label { font-weight:600; font-size:0.95em; }
   .modal input, .modal select, .modal textarea {
-    font-size: 1em; padding: 6px 9px; margin-top: 2px; background: #f7fafb;
-    color: #172850; border-radius: 8px; border: none; width: 100%; margin-bottom: 6px;
+    font-size: 1em; padding: 6px 9px; margin-top: 2px; background: #f8fafc;
+    color: #172850; border-radius: 8px; border: none;
+    width: 100%; margin-bottom: 5px;
   }
-  .modal textarea { min-height: 32px;}
-  .buttons-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;}
-  #importInput { display:none;}
+  .modal textarea { min-height: 29px;}
+  .buttons-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;}
 </style>
 </head>
 <body>
 <h1>Kanban Board</h1>
 <div class="topbar-flex">
-  <button id="showAddTodoTop" type="button">+ Add Task</button>
-  <button id="backupBtn" type="button" title="Download tasks as JSON backup">Backup</button>
-  <button id="restoreBtn" type="button" title="Import tasks from JSON file">Restore</button>
+  <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task<span class="shortcut">(Alt+A)</span></button>
+  <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup<span class="shortcut">(Alt+B)</span></button>
+  <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore<span class="shortcut">(Alt+R)</span></button>
+  <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive<span class="shortcut">(Alt+V)</span></button>
   <input type="file" id="importInput" accept="application/json" />
-  <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." />
+  <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F to focus" />
 </div>
 <form id="addFormTodo" class="form-container hidden" aria-hidden="true" tabindex="-1" autocomplete="off">
   <label>Task Name<input type="text" id="todoName" required /></label>
@@ -164,7 +272,6 @@
   <div id="archiveTasks"></div>
   <button id="closeArchive">Close Archive</button>
 </section>
-<button id="showArchiveBtn" aria-expanded="false" aria-controls="archiveSection" style="margin-top: 16px;">Show Archive</button>
 <!-- Edit Modal -->
 <div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" tabindex="-1">
   <div class="modal">
@@ -207,7 +314,7 @@ function escapeHtml(text) { if (!text) return ""; return text.replace(/[&<>"']/g
 function getTaskAgeBadge(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'Today'; if (created.toDateString() === yesterday.toDateString()) return 'Yesterday'; return null; }
 function getTaskAgeClass(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'badge-today'; if (created.toDateString() === yesterday.toDateString()) return 'badge-yesterday'; return 'badge-old'; }
 function formatDateTime(ts) { return (new Date(ts)).toLocaleString(undefined, {dateStyle:'short',timeStyle:'short'});}
-function renderTasks(container, taskArray, allowEditing = true, showHistory = false) {
+function renderTasks(container, taskArray, allowEditing = true) {
   container.innerHTML = "";
   taskArray.forEach(task => {
     const div = document.createElement("div");
@@ -237,7 +344,6 @@ function renderTasks(container, taskArray, allowEditing = true, showHistory = fa
       div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
       div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
     }
-    // "More details" toggler
     div.querySelector(".more-detail-link").addEventListener("click", function(){
       let hd = div.querySelector(".history-details");
       if (hd.classList.contains("hidden")) { hd.classList.remove("hidden"); this.textContent = "Hide details"; }
@@ -345,7 +451,7 @@ function openEditModal(id) {
   editTagsInput.value = task.tags.join(", ");
   editStatusSelect.value = task.status;
   editModalBackdrop.classList.remove("hidden");
-  setTimeout(() => { editNameInput.focus(); }, 120);
+  setTimeout(() => { editNameInput.focus(); }, 130);
 }
 function closeEditModal() { editingTaskId = null; editModalBackdrop.classList.add("hidden"); }
 closeEditModalBtn.addEventListener("click", closeEditModal);
@@ -418,24 +524,4 @@ backupBtn.addEventListener("click", () => {
   a.click(); URL.revokeObjectURL(url);
 });
 restoreBtn.addEventListener("click", () => importInput.click());
-importInput.addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (Array.isArray(imported)) {
-        tasks = imported; saveTasks(); renderBoard();
-        alert("Tasks restored successfully!");
-      } else alert("Invalid file format.");
-    } catch (error) { alert("Error reading file: " + error.message);}
-  };
-  reader.readAsText(file);
-  importInput.value = "";
-});
-renderBoard();
-</script>
-</body>
-</html>
-
+importInput.addEventListener("change", (event)
