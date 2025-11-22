@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<div id="privacyBanner" class="fixed-banner">
+<div id="privacyBanner" class="fixed-banner fixed-header">
     <p>
         <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;margin-right:5px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
         <b>Data Privacy Notice:</b> All your Kanban board data is <b>only stored locally in your browser.</b> We do <b>not</b> store, backup, sync, or collect any data—your board is private and personal. <b>Backup regularly</b> so you never lose your tasks.
@@ -17,85 +17,114 @@
     <button id="dismissPrivacy" type="button" aria-label="Dismiss Privacy Notice">&times;</button>
 </div>
 
-<div id="fixedBannerSpacer"></div>
-
-<h1>Kanban Board</h1>
-
-<div class="topbar-flex">
-  <button id="showPrivacyBtn" type="button" aria-label="Show Privacy Notice">
-      <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;margin-right:5px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
-      Privacy
-  </button>
-  <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task <span class="shortcut">Alt+A</span></button>
-  <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup <span class="shortcut">Alt+B</span></button>
-  <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore <span class="shortcut">Alt+R</span></button>
-  <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive <span class="shortcut">Alt+V</span></button>
-  <input type="file" id="importInput" accept="application/json" />
-  <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F or / to focus" />
+<div class="fixed-header top-main-bar">
+    <h1>KANBAN BOARD</h1>
+    
+    <div class="header-group">
+        <button id="showPrivacyBtn" type="button" aria-label="Show Privacy Notice" class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
+            Privacy
+        </button>
+        <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)" class="action-btn">+ Add Task <span class="shortcut">Alt+A</span></button>
+    </div>
+    
+    <div class="header-group data-group">
+        <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup <span class="shortcut">Alt+B</span></button>
+        <label for="importInput" class="button restore-label">
+            <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore <span class="shortcut">Alt+R</span></button>
+        </label>
+        <input type="file" id="importInput" accept="application/json" class="visually-hidden" /> 
+        <button id="showArchiveBtn" type="button" aria-label="Show Archive (Alt+V)">Archive <span class="shortcut">Alt+V</span></button>
+    </div>
+    
+    <div class="header-group search-group">
+        <input type="search" id="searchInput" placeholder="Search / Ask AI..." aria-label="Search or ask for tasks..." title="Alt+F or / to focus" />
+        <button id="showHelpBtn" type="button" aria-label="Show Commands Help" title="Commands Help" class="icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:-3px;margin-right:5px;">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987v.217a.237.237 0 0 0 .237.247h.863a.237.237 0 0 0 .237-.247v-.14c0-.73.39-1.077 1.072-1.572.645-.474 1.638-1.354 1.638-2.981 0-1.727-1.102-2.313-2.308-2.313-1.304 0-2.244.433-2.465 1.025a.237.237 0 0 0 .237.317M8 12.93a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/>
+            </svg>
+            Help
+        </button>
+    </div>
 </div>
 
-<form id="addFormTodo" class="form-container hidden" aria-hidden="true" tabindex="-1" autocomplete="off">
-  <label>Task Name<input type="text" id="todoName" required /></label>
-  <label>Description<textarea id="todoDesc" spellcheck="true"></textarea></label>
-  <label>Priority
-    <select id="todoPriority">
-      <option value="low">Low</option>
-      <option value="medium" selected>Medium</option>
-      <option value="major">Major</option>
-    </select>
-  </label>
-  <label>Alarm Date & Time<input type="datetime-local" id="todoAlarm"/></label>
-  <label>Tags (comma separated)<input type="text" id="todoTags" /></label>
-  <div class="buttons-row">
-    <button id="saveTodo" type="submit"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
-    <button type="button" id="cancelTodo"><u>C</u>ancel <span class="shortcut">Alt+C</span></button>
-  </div>
+<div id="fixedBannerSpacer"></div> <form id="addFormTodo" class="form-container floating-form hidden" aria-hidden="true" tabindex="-1" autocomplete="off">
+    <label>Task Name<input type="text" id="todoName" required /></label>
+    <label>Description<textarea id="todoDesc" spellcheck="true"></textarea></label>
+    <label>Priority
+        <select id="todoPriority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="major">Major</option>
+        </select>
+    </label>
+    <label>Alarm Date & Time<input type="datetime-local" id="todoAlarm"/></label>
+    <label>Tags (comma separated)<input type="text" id="todoTags" /></label>
+    <div class="buttons-row">
+        <button id="saveTodo" type="submit" class="save-btn"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
+        <button type="button" id="cancelTodo" class="cancel-btn"><u>C</u>ancel <span class="shortcut">Alt+C</span></button>
+    </div>
 </form>
 
+<div id="aiFeedbackBox" class="feedback-box hidden" role="status" aria-live="polite"></div>
+
 <div class="kanban-container" aria-label="Kanban board columns">
-  <div class="column" id="todoCol"><h3>To-Do</h3><div id="todoTasks"></div></div>
-  <div class="column" id="inprogressCol"><h3>In Progress</h3><div id="inprogressTasks"></div></div>
-  <div class="column" id="doneCol"><h3>Done</h3><div id="doneTasks"></div></div>
+    <div class="column" id="todoCol"><h3>To-Do</h3><div id="todoTasks"></div></div>
+    <div class="column" id="inprogressCol"><h3>In Progress</h3><div id="inprogressTasks"></div></div>
+    <div class="column" id="doneCol"><h3>Done</h3><div id="doneTasks"></div></div>
 </div>
 
 <section id="archiveSection" class="hidden">
-  <h2>Archive (tasks older than 7 days)</h2>
-  <div id="archiveTasks"></div>
-  <button id="closeArchive"><u>X</u> Close <span class="shortcut">Alt+X / Esc</span></button>
+    <h2>Archive (tasks older than 7 days)</h2>
+    <div id="archiveTasks"></div>
+    <button id="closeArchive"><u>X</u> Close <span class="shortcut">Alt+X / Esc</span></button>
 </section>
 
 <div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" tabindex="-1">
-  <div class="modal">
-    <div class="modal-header">
-      <div>Edit Task</div>
-      <button id="closeEditModal" class="modal-close" type="button" title="Close">&times;</button>
+    <div class="modal">
+        <div class="modal-header">
+            <div>Edit Task</div>
+            <button id="closeEditModal" class="modal-close" type="button" title="Close">&times;</button>
+        </div>
+        <form id="editTaskForm" autocomplete="off">
+            <label>Task Name<input type="text" id="editName" required /></label>
+            <label>Description<textarea id="editDesc" spellcheck="true"></textarea></label>
+            <label>Priority
+                <select id="editPriority">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="major">Major</option>
+                </select>
+            </label>
+            <label>Alarm Date & Time<input type="datetime-local" id="editAlarm"/></label>
+            <label>Tags (comma separated)<input type="text" id="editTags"/></label>
+            <label>Status
+                <select id="editStatus">
+                    <option value="todo">To-Do</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </label>
+            <div class="buttons-row">
+                <button type="submit" class="save-btn"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
+                <button type="button" id="cancelEdit" class="cancel-btn"><u>C</u>ancel <span class="shortcut">Alt+C / Esc</span></button>
+            </div>
+        </form>
     </div>
-    <form id="editTaskForm" autocomplete="off">
-      <label>Task Name<input type="text" id="editName" required /></label>
-      <label>Description<textarea id="editDesc" spellcheck="true"></textarea></label>
-      <label>Priority
-        <select id="editPriority">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="major">Major</option>
-        </select>
-      </label>
-      <label>Alarm Date & Time<input type="datetime-local" id="editAlarm"/></label>
-      <label>Tags (comma separated)<input type="text" id="editTags"/></label>
-      <label>Status
-        <select id="editStatus">
-          <option value="todo">To-Do</option>
-          <option value="inprogress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-      </label>
-      <div class="buttons-row">
-        <button type="submit"><u>S</u>ave <span class="shortcut">Alt+S</span></button>
-        <button type="button" id="cancelEdit"><u>C</u>ancel <span class="shortcut">Alt+C / Esc</span></button>
-      </div>
-    </form>
-  </div>
 </div>
+
+<div id="helpModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="modal large-modal">
+        <div class="modal-header">
+            <div>Search / Ask AI Command Guide</div>
+            <button id="closeHelpModal" class="modal-close" type="button" title="Close">&times;</button>
+        </div>
+        <div id="helpContent" class="help-content">
+            </div>
+    </div>
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
