@@ -1,62 +1,72 @@
 body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font choice */
-    background: #0f172a; /* Dark background: Slate-900 */
-    color: #e2e8f0; /* Light text for contrast */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
     margin: 0;
     padding: 24px 0 0 0;
-    max-width: 1200px; /* Slightly wider */
+    max-width: 1200px;
     margin-left:auto;
     margin-right:auto;
 }
 
-/* --- General AI Style Elements --- */
-.topbar-flex, .column, .task {
-    border: 1px solid #1e293b; /* Subtle border */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    background: #1e293b; /* Dark card background: Slate-800 */
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease-out;
-}
-
-#privacyBadge {
-    position: absolute;
-    left: 30px;
-    top: 18px;
-    display: inline-flex;
-    align-items: center;
+/* --- NEW: Fixed Privacy Banner --- */
+.fixed-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     background: #1e293b;
     color: #94a3b8;
-    font-weight: 600;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 0.9em;
-    border-radius: 4px; /* Sharper corners */
-    padding: 5px 15px 5px 10px;
-    box-shadow: 0 1px 7px rgba(0, 0, 0, 0.3);
-    z-index: 1002;
+    border-bottom: 1px solid #334155;
+}
+.fixed-banner p {
+    margin: 0;
+    max-width: 1100px;
+}
+.fixed-banner b {
+    color: #3b82f6;
+    font-weight: 700;
+}
+#dismissPrivacy {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5em;
     cursor: pointer;
-    line-height: 1;
-    border: 1px solid #334155;
+    margin-left: 20px;
+    padding: 0 10px;
 }
-#privacyBadge:hover, #privacyBadge:focus { 
-    box-shadow: 0 0 15px #43a8f550; /* Subtle blue glow */
-    border-color: #3b82f6;
+#dismissPrivacy:hover {
+    color: #f8fafc;
 }
-#privacyBadge span { color: #3b82f6; font-weight:700; font-size:1em;}
-#privacyTooltip {
-    /* ... (Keep existing tooltip styling for a dark pop-up) */
-    background: #0c1426;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    box-shadow: 0 7px 40px #0007;
+/* Removed old #privacyBadge and #privacyTooltip styles */
+
+/* --- General AI Style Elements --- */
+.topbar-flex, .column, .task {
+    border: 1px solid #1e293b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: #1e293b;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease-out;
 }
 
 h1 { 
     margin: 22px 0 15px 0; 
     letter-spacing: 3px; 
     font-weight: 900; 
-    text-shadow: 0 0 12px #3b82f650; /* Glowing effect */
+    text-shadow: 0 0 12px #3b82f650;
     padding-left: 18px; 
-    color: #f8fafc; /* Near-white */
+    color: #f8fafc;
     text-transform: uppercase;
+    /* Adjust margin-top to clear the fixed banner */
+    margin-top: 50px; 
 }
 
 /* --- Top Bar & Buttons --- */
@@ -66,9 +76,10 @@ h1 {
     gap: 8px; 
     padding: 12px 18px; 
     border-radius: 8px; 
+    flex-wrap: wrap; /* Ensure it wraps nicely if space is tight */
 }
 .topbar-flex button { 
-    background: #334155; /* Slate-700 */
+    background: #334155;
     color: #f8fafc; 
     font-size: 0.9em; 
     border: none; 
@@ -80,13 +91,13 @@ h1 {
     transition: background 0.18s, box-shadow 0.18s;
 }
 .topbar-flex button:hover { 
-    background: #475569; /* Slate-600 */
+    background: #475569;
     box-shadow: 0 0 10px #3b82f650;
 }
 .shortcut { 
     font-size:0.75em; 
     color:#e2e8f0; 
-    background: #3b82f6; /* Accent color */
+    background: #3b82f6;
     font-weight:700; 
     padding: 1.5px 6px; 
     border-radius:4px; 
@@ -111,7 +122,7 @@ h1 {
 /* --- Chatbot/Add Task Form Style --- */
 #addFormTodo { 
     display: flex; 
-    flex-direction: column; /* Stack elements for chatbot flow */
+    flex-direction: column;
     gap: 10px; 
     max-width: 450px; 
     background: #1e293b; 
@@ -124,7 +135,7 @@ h1 {
 #addFormTodo label { 
     font-weight: 600;
     font-size: 0.95em;
-    color: #94a3b8; /* Faded label */
+    color: #94a3b8;
     display: block;
     margin-bottom: 3px;
 }
@@ -162,7 +173,7 @@ h1 {
     padding: 14px 6px 7px 7px; 
     display: flex; 
     flex-direction: column; 
-    border-top: 3px solid #3b82f6; /* Define column with a dynamic color */
+    border-top: 3px solid #3b82f6;
 }
 .column h3 { 
     text-align: center; 
@@ -175,7 +186,7 @@ h1 {
 
 /* --- Task Cards --- */
 .task { 
-    background: #2b394d; /* Slightly lighter card for contrast */
+    background: #2b394d;
     border-radius: 6px; 
     padding: 10px 12px; 
     margin-bottom: 10px; 
@@ -188,9 +199,9 @@ h1 {
     background: #334155; 
     box-shadow: 0 0 10px #3b82f630, 0 2px 15px rgba(0, 0, 0, 0.5); 
 }
-.priority-low { border-left-color: #10b981; } /* Emerald */
-.priority-medium { border-left-color: #f59e0b; } /* Amber */
-.priority-major { border-left-color: #ef4444; } /* Red */
+.priority-low { border-left-color: #10b981; }
+.priority-medium { border-left-color: #f59e0b; }
+.priority-major { border-left-color: #ef4444; }
 .task strong { color: #3b82f6;}
 .task .tags { color: #94a3b8; font-size: 0.81rem;}
 .task .tags span { 
