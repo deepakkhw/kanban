@@ -55,20 +55,20 @@ body {
 }
 /* END: Fixed Privacy Banner */
 
-/* --- Spacer for Fixed Banner --- */
+/* --- Spacer Element (Pushes content down when banner is visible) --- */
 #fixedBannerSpacer {
     height: 0;
     transition: height 0.3s;
 }
 #fixedBannerSpacer.visible {
-    height: 50px; 
+    height: 50px; /* Space needed for the fixed banner */
 }
 
 h1 { 
     margin: 22px 0 15px 0; 
     letter-spacing: 4px; 
     font-weight: 900; 
-    text-shadow: 0 0 15px #58a6ff40; /* Subtler glow */
+    text-shadow: 0 0 15px #58a6ff40; 
     padding-left: 18px; 
     color: #f0f6fc;
     text-transform: uppercase;
@@ -83,13 +83,13 @@ h1 {
     padding: 12px 18px; 
     border-radius: 8px; 
     flex-wrap: wrap; 
-    border: 1px solid #30363d; /* Darker border */
+    border: 1px solid #30363d; 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
     background: #161b22;
     backdrop-filter: blur(8px);
 }
 .topbar-flex button { 
-    background: #21262d; /* Dark button */
+    background: #21262d; 
     color: #c9d1d9; 
     font-size: 0.9em; 
     border: 1px solid #30363d; 
@@ -107,7 +107,7 @@ h1 {
 .shortcut { 
     font-size:0.75em; 
     color:#f0f6fc; 
-    background: #58a6ff; /* Blue accent */
+    background: #58a6ff; 
     font-weight:700; 
     padding: 1.5px 6px; 
     border-radius:4px; 
@@ -183,7 +183,7 @@ h1 {
     font-weight: 600;
 }
 #addFormTodo #saveTodo {
-    background: #58a6ff; /* Primary action blue */
+    background: #58a6ff; 
     color: #0d1117;
     font-weight: 700;
     border: 1px solid #58a6ff;
@@ -207,7 +207,7 @@ h1 {
     display: flex; 
     flex-direction: column; 
     border: 1px solid #30363d;
-    border-top: 3px solid #58a6ff; /* Column header accent */
+    border-top: 3px solid #58a6ff; 
 }
 .column h3 { 
     text-align: center; 
@@ -220,7 +220,7 @@ h1 {
 
 /* --- Task Cards --- */
 .task { 
-    background: #161b22; /* Dark card background */
+    background: #161b22; 
     border-radius: 6px; 
     padding: 10px 12px; 
     margin-bottom: 10px; 
@@ -228,15 +228,15 @@ h1 {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); 
     color: #c9d1d9; 
     position: relative; 
-    border: 1px solid #30363d40; /* Subtle card border */
+    border: 1px solid #30363d40; 
 }
 .task:hover { 
-    background: #21262d; /* Hover darkens slightly */
+    background: #21262d; 
     box-shadow: 0 0 10px #58a6ff10, 0 2px 15px rgba(0, 0, 0, 0.5); 
 }
-.priority-low { border-left-color: #38bdf8; } /* Light Blue */
-.priority-medium { border-left-color: #facc15; } /* Yellow */
-.priority-major { border-left-color: #f87171; } /* Red */
+.priority-low { border-left-color: #38bdf8; } 
+.priority-medium { border-left-color: #facc15; } 
+.priority-major { border-left-color: #f87171; } 
 .task strong { color: #58a6ff;}
 .task .tags { color: #8b949e; font-size: 0.81rem;}
 .task .tags span { 
@@ -283,7 +283,7 @@ h1 {
     display: inline-block;
     float: right;
     margin-top: 5px;
-    background: #f87171; /* Red for close */
+    background: #f87171; 
     color: #161b22;
     border: none;
     padding: 7px 15px;
@@ -359,7 +359,7 @@ h1 {
     gap: 10px;
 }
 #editTaskForm button[type="submit"] {
-    background: #58a6ff; /* Primary action blue */
+    background: #58a6ff; 
     color: #0d1117;
     padding: 8px 15px;
     border: none;
