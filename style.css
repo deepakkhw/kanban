@@ -25,7 +25,13 @@ body {
     align-items: center;
     font-size: 0.9em;
     border-bottom: 1px solid #334155;
+    transition: 0.3s; /* Smooth transition for hiding/showing */
 }
+.fixed-banner.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
 .fixed-banner p {
     margin: 0;
     max-width: 1100px;
@@ -42,20 +48,12 @@ body {
     cursor: pointer;
     margin-left: 20px;
     padding: 0 10px;
+    transition: 0.2s;
 }
 #dismissPrivacy:hover {
     color: #f8fafc;
 }
-/* Removed old #privacyBadge and #privacyTooltip styles */
-
-/* --- General AI Style Elements --- */
-.topbar-flex, .column, .task {
-    border: 1px solid #1e293b;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    background: #1e293b;
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease-out;
-}
+/* END: Fixed Privacy Banner */
 
 h1 { 
     margin: 22px 0 15px 0; 
@@ -65,8 +63,9 @@ h1 {
     padding-left: 18px; 
     color: #f8fafc;
     text-transform: uppercase;
-    /* Adjust margin-top to clear the fixed banner */
+    /* This margin will be controlled by JavaScript based on banner visibility */
     margin-top: 50px; 
+    transition: margin-top 0.3s;
 }
 
 /* --- Top Bar & Buttons --- */
@@ -76,7 +75,11 @@ h1 {
     gap: 8px; 
     padding: 12px 18px; 
     border-radius: 8px; 
-    flex-wrap: wrap; /* Ensure it wraps nicely if space is tight */
+    flex-wrap: wrap; 
+    border: 1px solid #1e293b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: #1e293b;
+    backdrop-filter: blur(8px);
 }
 .topbar-flex button { 
     background: #334155;
