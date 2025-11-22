@@ -1,16 +1,37 @@
-// Add a constant for the temporary welcome task ID
-const WELCOME_TASK_ID = "WELCOME_TASK";
+// Remove the old privacy badge listeners as they caused the overlap
+// const privacy=document.getElementById('privacyBadge');
+// const tooltip=document.getElementById('privacyTooltip');
+// privacy.addEventListener('mouseenter', ()=>{ tooltip.classList.remove('hidden'); });
+// ... (removed all old privacy listeners)
 
-// The script.js content from the previous response is used, 
-// with one key change in the renderBoard function to handle the empty state.
+// NEW IDEA: Dismissible Privacy Banner Logic
+const privacyBanner = document.getElementById('privacyBanner');
+const dismissPrivacyBtn = document.getElementById('dismissPrivacy');
+const showPrivacyBtn = document.getElementById('showPrivacyBtn');
 
-const privacy=document.getElementById('privacyBadge');
-const tooltip=document.getElementById('privacyTooltip');
-privacy.addEventListener('mouseenter', ()=>{ tooltip.classList.remove('hidden'); });
-privacy.addEventListener('mouseleave', ()=>{ tooltip.classList.add('hidden'); });
-privacy.addEventListener('focus', ()=>{ tooltip.classList.remove('hidden'); });
-privacy.addEventListener('blur', ()=>{ tooltip.classList.add('hidden'); });
-privacy.addEventListener('click', ()=>{ tooltip.classList.toggle('hidden'); });
+// Check if the user has dismissed the banner before
+if (localStorage.getItem('privacyBannerDismissed') === 'true') {
+    privacyBanner.style.display = 'none';
+    document.querySelector('h1').style.marginTop = '22px'; // Restore original margin
+}
+
+// Function to dismiss the banner
+function dismissBanner() {
+    privacyBanner.style.display = 'none';
+    localStorage.setItem('privacyBannerDismissed', 'true');
+    document.querySelector('h1').style.marginTop = '22px'; // Adjust H1 margin
+}
+
+// Function to show the banner
+function showBanner() {
+    privacyBanner.style.display = 'flex';
+    localStorage.removeItem('privacyBannerDismissed'); // Reset dismissal flag
+    document.querySelector('h1').style.marginTop = '50px'; // Adjust H1 margin
+}
+
+dismissPrivacyBtn.addEventListener('click', dismissBanner);
+showPrivacyBtn.addEventListener('click', showBanner);
+
 
 let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
 const todoTasksDiv = document.getElementById("todoTasks"),
@@ -38,6 +59,7 @@ const todoTasksDiv = document.getElementById("todoTasks"),
   editTagsInput = document.getElementById("editTags"),
   editStatusSelect = document.getElementById("editStatus");
 const PRIORITY_CLASSES = { low: "priority-low", medium: "priority-medium", major: "priority-major" };
+const WELCOME_TASK_ID = "WELCOME_TASK";
 let editingTaskId = null;
 let notifiedTaskIds = new Set(); 
 
@@ -49,9 +71,7 @@ function formatDateTime(ts) { return (new Date(ts)).toLocaleString(undefined, {d
 
 function renderTasks(container, taskArray, allowEditing = true) {
   container.innerHTML = "";
-  // Check if no tasks are available AND we are rendering the 'todo' column with no search term
   if (taskArray.length === 0 && container.id === 'todoTasks' && searchInput.value === "") {
-    // NEW IDEA: Add a temporary welcome/placeholder task
     const placeholderTask = {
         id: WELCOME_TASK_ID,
         name: "Welcome to your AI-Kanban!",
@@ -70,10 +90,9 @@ function renderTasks(container, taskArray, allowEditing = true) {
     const isPlaceholder = task.id === WELCOME_TASK_ID;
     const div = document.createElement("div");
     div.className = "task " + PRIORITY_CLASSES[task.priority];
-    div.draggable = allowEditing && !isPlaceholder; // Cannot drag placeholder
+    div.draggable = allowEditing && !isPlaceholder;
     div.dataset.id = task.id; div.tabIndex = 0;
     
-    // Only show age badge for real tasks
     const ageBadge = isPlaceholder ? 'NEW' : getTaskAgeBadge(task.createdAt);
     const ageClass = isPlaceholder ? 'badge-today' : getTaskAgeClass(task.createdAt);
     
@@ -117,7 +136,6 @@ function renderBoard() {
   const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
   const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
   
-  // Exclude placeholder task from other columns
   renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
   renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress" && t.id !== WELCOME_TASK_ID));
   renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done" && t.id !== WELCOME_TASK_ID));
@@ -125,7 +143,7 @@ function renderBoard() {
 }
 function filterTasks(term) {
   term = term.trim().toLowerCase();
-  if (!term) return tasks.filter(t => t.id !== WELCOME_TASK_ID); // Exclude permanent tasks from filter base
+  if (!term) return tasks.filter(t => t.id !== WELCOME_TASK_ID);
   return tasks.filter(t =>
     t.name.toLowerCase().includes(term) ||
     (t.description && t.description.toLowerCase().includes(term)) ||
@@ -136,7 +154,7 @@ function filterTasks(term) {
 showAddTodoTop.addEventListener("click", () => {
   addFormTodo.classList.remove("hidden");
   addFormTodo.setAttribute("aria-hidden", "false");
-  document.getElementById("todoName").value = ""; // Clear name field first
+  document.getElementById("todoName").value = "";
   addFormTodo.querySelector("#todoName").focus();
 });
 cancelTodoBtn.addEventListener("click", () => {
@@ -158,7 +176,6 @@ addFormTodo.addEventListener("submit", function(e){
     alarmDate = document.getElementById("todoAlarm").value,
     tags = document.getElementById("todoTags").value.split(",").map(t => t.trim()).filter(Boolean);
   
-  // Remove welcome task if present before pushing new task
   tasks = tasks.filter(t => t.id !== WELCOME_TASK_ID); 
     
   tasks.push({
@@ -178,7 +195,7 @@ let draggedTaskId = null;
 function dragStart(event) {
   draggedTaskId = event.target.dataset.id;
   if (draggedTaskId === WELCOME_TASK_ID) {
-    event.preventDefault(); // Prevent dragging the placeholder
+    event.preventDefault();
     draggedTaskId = null;
     return;
   }
@@ -208,7 +225,6 @@ function drop(event) {
 function deleteTask(id) {
   if (!confirm("Are you sure you want to delete this task?")) return;
   tasks = tasks.filter(t => t.id !== id); 
-  // If the last task was deleted, clear the notified set to allow notification on next boot
   if (tasks.length === 0) { notifiedTaskIds.clear(); } 
   saveTasks(); 
   renderBoard();
@@ -270,7 +286,7 @@ function closeArchiveSection() {
 }
 searchInput.addEventListener("input", renderBoard);
 
-// Alarm notifications (Bug fixes retained)
+// Alarm notifications
 function requestNotifications() {
   if ("Notification" in window) {
     if (Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
@@ -302,9 +318,9 @@ setInterval(() => { notifyDueTasks(); }, 5 * 60 * 1000);
 
 setInterval(() => { saveTasks(); }, 4 * 60 * 60 * 1000);
 
-// Backup/restore (Validation improvements retained)
+// Backup/restore
 backupBtn.addEventListener("click", () => {
-  const dataStr = JSON.stringify(tasks.filter(t => t.id !== WELCOME_TASK_ID), null, 2); // Exclude placeholder
+  const dataStr = JSON.stringify(tasks.filter(t => t.id !== WELCOME_TASK_ID), null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -344,7 +360,6 @@ importInput.addEventListener("change", (event) => {
   importInput.value = "";
 });
 document.addEventListener("keydown", function(e){
-  // ... (Keyboard shortcuts logic is unchanged) ...
   const mod = e.altKey;
   if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) {
     if (addFormTodo && !addFormTodo.classList.contains('hidden')) {
@@ -374,4 +389,6 @@ document.addEventListener("keydown", function(e){
     if (!editModalBackdrop.classList.contains('hidden')) closeEditModal();
   }
 });
+
+// Initial call to render the board
 renderBoard();
