@@ -127,23 +127,30 @@ function renderTasks(container, taskArray, allowEditing = true) {
     const tagsHtml = task.tags && Array.isArray(task.tags) && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
     const alarmStr = task.alarmDate ? formatDateTime(task.alarmDate) : "";
     
+    // --- CORRECTED INNER HTML STRUCTURE ---
     div.innerHTML = `
       <div class="task-badge ${ageClass}">${ageBadge || ''}</div>
       <strong>${escapeHtml(task.name)}</strong>
-      <details><summary>Description</summary><p>${escapeHtml(task.description || "No description")}</p></details>
+      <details class="task-description">
+        <summary>Description</summary>
+        <p>${escapeHtml(task.description || "No description")}</p>
+      </details>
       <div><b>Priority:</b> ${task.priority}</div>
       <div class="tags">${tagsHtml}</div>
       ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
+      
       ${isPlaceholder ? '' : `
-        <button class="more-detail-link" type="button">More details</button>
         <div class="history-details hidden">
           Created: ${formatDateTime(task.createdAt)}<br/>
           Edited: ${formatDateTime(task.updatedAt)}<br/>
           Moved: ${task.lastMovedAt ? formatDateTime(task.lastMovedAt) : 'N/A'}
         </div>
+        <button class="more-detail-link" type="button">More details</button>
         ${allowEditing ? `<div class="task-buttons"><button class="editBtn">Edit</button><button class="deleteBtn">Delete</button></div>` : ""}
       `}
     `;
+    // --- END CORRECTED INNER HTML STRUCTURE ---
+    
     container.appendChild(div);
     
     if (allowEditing && !isPlaceholder) {
@@ -151,11 +158,19 @@ function renderTasks(container, taskArray, allowEditing = true) {
       div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
       div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
       
+      // --- CORRECTED EVENT LISTENER FOR HISTORY DETAILS ---
       div.querySelector(".more-detail-link").addEventListener("click", function(){
         let hd = div.querySelector(".history-details");
-        if (hd.classList.contains("hidden")) { hd.classList.remove("hidden"); this.textContent = "Hide details"; }
-        else { hd.classList.add("hidden"); this.textContent = "More details"; }
+        if (hd.classList.contains("hidden")) { 
+          hd.classList.remove("hidden"); 
+          this.textContent = "Hide details"; 
+        }
+        else { 
+          hd.classList.add("hidden"); 
+          this.textContent = "More details"; 
+        }
       });
+      // --- END CORRECTED EVENT LISTENER ---
     }
   });
 }
