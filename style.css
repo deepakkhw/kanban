@@ -9,7 +9,16 @@ body {
     margin-right:auto;
 }
 
-/* --- NEW: Fixed Privacy Banner --- */
+/* --- NEW: Spacer Element (Pushes content down when banner is visible) --- */
+#fixedBannerSpacer {
+    height: 0;
+    transition: height 0.3s;
+}
+#fixedBannerSpacer.visible {
+    height: 50px; /* Needs to match the fixed-banner height (approx 44px + border + padding) */
+}
+
+/* --- Fixed Privacy Banner --- */
 .fixed-banner {
     position: fixed;
     top: 0;
@@ -28,9 +37,9 @@ body {
     transition: transform 0.3s, opacity 0.3s;
 }
 .fixed-banner.hidden {
-    transform: translateY(-100%); /* Hide smoothly upwards */
+    transform: translateY(-100%); 
     opacity: 0;
-    pointer-events: none; /* Disable interaction when hidden */
+    pointer-events: none;
 }
 
 .fixed-banner p {
@@ -57,20 +66,14 @@ body {
 /* END: Fixed Privacy Banner */
 
 h1 { 
-    margin: 22px 0 15px 0; 
+    margin: 22px 0 15px 0; /* Set a consistent margin here */
     letter-spacing: 3px; 
     font-weight: 900; 
     text-shadow: 0 0 12px #3b82f650;
     padding-left: 18px; 
     color: #f8fafc;
     text-transform: uppercase;
-    /* Base margin */
-    margin-top: 22px; 
     transition: margin-top 0.3s;
-}
-/* Class added by JS when banner is visible */
-h1.banner-visible-margin {
-    margin-top: 50px; /* Space for the banner */
 }
 
 /* --- General AI Style Elements --- */
@@ -82,7 +85,59 @@ h1.banner-visible-margin {
     transition: all 0.2s ease-out;
 }
 
-/* ... (rest of topbar-flex, button, shortcut, search styles are unchanged) ... */
+/* --- Top Bar & Buttons --- */
+.topbar-flex { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    padding: 12px 18px; 
+    border-radius: 8px; 
+    flex-wrap: wrap; 
+    border: 1px solid #1e293b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: #1e293b;
+    backdrop-filter: blur(8px);
+}
+.topbar-flex button { 
+    background: #334155;
+    color: #f8fafc; 
+    font-size: 0.9em; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 7px 15px; 
+    cursor: pointer; 
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background 0.18s, box-shadow 0.18s;
+}
+.topbar-flex button:hover { 
+    background: #475569;
+    box-shadow: 0 0 10px #3b82f650;
+}
+.shortcut { 
+    font-size:0.75em; 
+    color:#e2e8f0; 
+    background: #3b82f6;
+    font-weight:700; 
+    padding: 1.5px 6px; 
+    border-radius:4px; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    opacity:.9; 
+}
+.topbar-flex input[type="search"] { 
+    border-radius: 6px; 
+    border: 1px solid #334155; 
+    padding: 7px 12px; 
+    font-size: 0.9em; 
+    width: 120px; 
+    background: #0f172a; 
+    color: #e2e8f0; 
+    outline: none;
+}
+.topbar-flex input[type="search"]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px #3b82f6;
+}
 
 /* --- Chatbot/Add Task Form Style --- */
 #addFormTodo { 
@@ -97,7 +152,36 @@ h1.banner-visible-margin {
     color: #e2e8f0; 
     border: 1px solid #334155;
 }
-/* ... (rest of addFormTodo styles are unchanged) ... */
+#addFormTodo label { 
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 3px;
+}
+#addFormTodo input, #addFormTodo select, #addFormTodo textarea { 
+    font-size: 1em; 
+    padding: 8px 10px; 
+    border-radius: 4px; 
+    border: 1px solid #334155; 
+    background: #0f172a; 
+    color: #f8fafc; 
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+}
+#addFormTodo input:focus, #addFormTodo textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 3px #3b82f6;
+}
+#addFormTodo textarea { min-height: 50px;}
+#addFormTodo .buttons-row { 
+    width: 100%; 
+    display: flex; 
+    gap: 11px; 
+    justify-content: flex-end; 
+    margin-top: 10px;
+}
 
 /* --- Kanban Columns --- */
 .kanban-container { display: flex; gap: 12px; min-height: 480px; margin-top: 5px; justify-content: center;}
@@ -121,7 +205,57 @@ h1.banner-visible-margin {
 }
 
 /* --- Task Cards --- */
-/* ... (task card styles are unchanged) ... */
+.task { 
+    background: #2b394d;
+    border-radius: 6px; 
+    padding: 10px 12px; 
+    margin-bottom: 10px; 
+    border-left: 5px solid transparent; 
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); 
+    color: #f8fafc; 
+    position: relative; 
+}
+.task:hover { 
+    background: #334155; 
+    box-shadow: 0 0 10px #3b82f630, 0 2px 15px rgba(0, 0, 0, 0.5); 
+}
+.priority-low { border-left-color: #10b981; }
+.priority-medium { border-left-color: #f59e0b; }
+.priority-major { border-left-color: #ef4444; }
+.task strong { color: #3b82f6;}
+.task .tags { color: #94a3b8; font-size: 0.81rem;}
+.task .tags span { 
+    background: #334155; 
+    color:#cbd5e1; 
+    padding: 2px 7px; 
+    border-radius: 4px; 
+    margin-right: 4px; 
+    font-size: 0.85em;
+}
+.task-badge { 
+    position: absolute; 
+    top: 5px; right: 6px; 
+    font-size: 0.65rem; 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-weight: 700; 
+    letter-spacing: .1em; 
+    opacity: 0.9;
+}
+.task button { 
+    background: #3b82f6; 
+    color: #f8fafc; 
+    font-size: 0.75rem; 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    border: none;
+}
+.task button:hover { 
+    background: #2563eb; 
+    color: #fff;
+}
+.more-detail-link { color: #3b82f6;}
+.history-details { color:#94a3b8; }
 
 /* --- Archive & Modal Fixes --- */
 #archiveSection { 
@@ -132,7 +266,7 @@ h1.banner-visible-margin {
     margin: 20px;
     padding: 15px;
 }
-/* Fix 1: Archive title and close button overlap */
+/* Fix: Archive title and close button overlap */
 #archiveSection h2 {
     display: inline-block;
     margin: 0;
@@ -154,7 +288,7 @@ h1.banner-visible-margin {
     background: #b91c1c;
 }
 
-/* Fix 2: Edit Modal Styling (must be fixed/centered overlay) */
+/* Fix: Edit Modal Styling (must be fixed/centered overlay) */
 .modal-backdrop { 
     background: rgba(0,0,0,0.8); 
     position: fixed;
@@ -162,7 +296,7 @@ h1.banner-visible-margin {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000; /* Ensure it's above everything else */
+    z-index: 2000; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -174,7 +308,7 @@ h1.banner-visible-margin {
     border: 1px solid #3b82f6; 
     padding: 20px;
     width: 90%;
-    max-width: 500px; /* Constrain size */
+    max-width: 500px; 
     box-shadow: 0 0 20px #0007;
 }
 .modal-header { 
