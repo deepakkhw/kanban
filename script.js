@@ -1,33 +1,34 @@
-// Remove the old privacy badge listeners as they caused the overlap
-// const privacy=document.getElementById('privacyBadge');
-// const tooltip=document.getElementById('privacyTooltip');
-// privacy.addEventListener('mouseenter', ()=>{ tooltip.classList.remove('hidden'); });
-// ... (removed all old privacy listeners)
-
 // NEW IDEA: Dismissible Privacy Banner Logic
 const privacyBanner = document.getElementById('privacyBanner');
 const dismissPrivacyBtn = document.getElementById('dismissPrivacy');
 const showPrivacyBtn = document.getElementById('showPrivacyBtn');
-
-// Check if the user has dismissed the banner before
-if (localStorage.getItem('privacyBannerDismissed') === 'true') {
-    privacyBanner.style.display = 'none';
-    document.querySelector('h1').style.marginTop = '22px'; // Restore original margin
-}
+const h1Element = document.querySelector('h1');
 
 // Function to dismiss the banner
 function dismissBanner() {
-    privacyBanner.style.display = 'none';
+    privacyBanner.classList.add('hidden');
     localStorage.setItem('privacyBannerDismissed', 'true');
-    document.querySelector('h1').style.marginTop = '22px'; // Adjust H1 margin
+    h1Element.style.marginTop = '22px'; // Adjust H1 margin up when banner is hidden
 }
 
 // Function to show the banner
 function showBanner() {
-    privacyBanner.style.display = 'flex';
+    privacyBanner.classList.remove('hidden');
     localStorage.removeItem('privacyBannerDismissed'); // Reset dismissal flag
-    document.querySelector('h1').style.marginTop = '50px'; // Adjust H1 margin
+    h1Element.style.marginTop = '50px'; // Adjust H1 margin down when banner is visible
 }
+
+// Initial check on load
+if (localStorage.getItem('privacyBannerDismissed') === 'true') {
+    // If dismissed, hide banner and adjust H1 margin immediately
+    privacyBanner.classList.add('hidden');
+    h1Element.style.marginTop = '22px';
+} else {
+    // If not dismissed, show banner and adjust H1 margin
+    privacyBanner.classList.remove('hidden');
+    h1Element.style.marginTop = '50px';
+}
+
 
 dismissPrivacyBtn.addEventListener('click', dismissBanner);
 showPrivacyBtn.addEventListener('click', showBanner);
@@ -390,5 +391,4 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-// Initial call to render the board
 renderBoard();
