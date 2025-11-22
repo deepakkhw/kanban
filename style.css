@@ -1,407 +1,606 @@
-// NEW: Spacer element control
-const privacyBanner = document.getElementById('privacyBanner');
-const dismissPrivacyBtn = document.getElementById('dismissPrivacy');
-const showPrivacyBtn = document.getElementById('showPrivacyBtn');
-const fixedBannerSpacer = document.getElementById('fixedBannerSpacer');
-
-// Function to dismiss the banner
-function dismissBanner() {
-    privacyBanner.classList.add('hidden');
-    localStorage.setItem('privacyBannerDismissed', 'true');
-    fixedBannerSpacer.classList.remove('visible'); // Hide spacer
+/* --- Global Styles and Reset --- */
+:root {
+    --bg-color: #0d1117; /* Dark background */
+    --surface-color: #161b22; /* Slightly lighter surface for cards/cols */
+    --border-color: #30363d;
+    --text-color: #f0f6fc;
+    --primary-color: #58a6ff; /* Blue for primary actions/links */
+    --success-color: #3fb950; /* Green */
+    --danger-color: #f85149; /* Red */
+    --warning-color: #d29922; /* Yellow/Orange */
+    --shadow-light: rgba(0, 0, 0, 0.15);
+    --shadow-dark: rgba(0, 0, 0, 0.5);
+    --header-height: 60px;
+    --banner-height: 35px;
 }
 
-// Function to show the banner
-function showBanner() {
-    privacyBanner.classList.remove('hidden');
-    localStorage.removeItem('privacyBannerDismissed'); // Reset dismissal flag
-    fixedBannerSpacer.classList.add('visible'); // Show spacer
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-// Initial check on load: This sets the correct starting layout.
-if (localStorage.getItem('privacyBannerDismissed') === 'true') {
-    privacyBanner.classList.add('hidden');
-    fixedBannerSpacer.classList.remove('visible');
-} else {
-    privacyBanner.classList.remove('hidden');
-    fixedBannerSpacer.classList.add('visible');
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* --- Fixed Header and Spacing --- */
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #0d1117ee; /* Slightly transparent dark background */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+}
+
+/* Privacy Banner specific styling */
+#privacyBanner {
+    height: var(--banner-height);
+    top: 0;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.85em;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+#privacyBanner.hidden {
+    transform: translateY(-100%);
+    height: 0;
+    padding: 0;
+    border-bottom: none;
+}
+#privacyBanner button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+/* Main Top Bar styling */
+.top-main-bar {
+    height: var(--header-height);
+    top: var(--banner-height); /* Position it below the privacy banner */
+    padding: 0 20px;
+    gap: 15px;
+    transition: top 0.3s ease;
+}
+#privacyBanner.hidden + .top-main-bar {
+    top: 0; /* Move up when banner is hidden */
 }
 
 
-dismissPrivacyBtn.addEventListener('click', dismissBanner);
-showPrivacyBtn.addEventListener('click', showBanner);
+#fixedBannerSpacer {
+    /* Accounts for the height of both fixed bars */
+    height: calc(var(--header-height) + var(--banner-height));
+    transition: height 0.3s ease;
+}
+#privacyBanner.hidden + .top-main-bar + #fixedBannerSpacer {
+    height: var(--header-height); /* Reduce height when banner is hidden */
+}
 
 
-let tasks = JSON.parse(localStorage.getItem("kanbanTasks") || "[]");
-const todoTasksDiv = document.getElementById("todoTasks"),
-  inprogressTasksDiv = document.getElementById("inprogressTasks"),
-  doneTasksDiv = document.getElementById("doneTasks"),
-  archiveTasksDiv = document.getElementById("archiveTasks"),
-  archiveSection = document.getElementById("archiveSection"),
-  showAddTodoTop = document.getElementById("showAddTodoTop"),
-  addFormTodo = document.getElementById("addFormTodo"),
-  saveTodoBtn = document.getElementById("saveTodo"),
-  cancelTodoBtn = document.getElementById("cancelTodo"),
-  searchInput = document.getElementById("searchInput"),
-  showArchiveBtn = document.getElementById("showArchiveBtn"),
-  closeArchiveBtn = document.getElementById("closeArchive"),
-  backupBtn = document.getElementById("backupBtn"),
-  restoreBtn = document.getElementById("restoreBtn"),
-  importInput = document.getElementById("importInput"),
-  editModalBackdrop = document.getElementById("editModalBackdrop"),
-  closeEditModalBtn = document.getElementById("closeEditModal"),
-  editTaskForm = document.getElementById("editTaskForm"),
-  editNameInput = document.getElementById("editName"),
-  editDescInput = document.getElementById("editDesc"),
-  editPrioritySelect = document.getElementById("editPriority"),
-  editAlarmInput = document.getElementById("editAlarm"),
-  editTagsInput = document.getElementById("editTags"),
-  editStatusSelect = document.getElementById("editStatus");
-const PRIORITY_CLASSES = { low: "priority-low", medium: "priority-medium", major: "priority-major" };
-const WELCOME_TASK_ID = "WELCOME_TASK";
-let editingTaskId = null;
-let notifiedTaskIds = new Set(); 
+/* --- Header Content --- */
+h1 {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
 
-function saveTasks() { localStorage.setItem("kanbanTasks", JSON.stringify(tasks)); }
-function escapeHtml(text) { if (!text) return ""; return text.replace(/[&<>"']/g, m => ({ '&': "&amp;", '<': "&lt;", '>': "&gt;", '"': "&quot;", "'": "&#39;" })[m]); }
-function getTaskAgeBadge(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'Today'; if (created.toDateString() === yesterday.toDateString()) return 'Yesterday'; return null; }
-function getTaskAgeClass(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'badge-today'; if (created.toDateString() === yesterday.toDateString()) return 'badge-yesterday'; return 'badge-old'; }
-function formatDateTime(ts) { return (new Date(ts)).toLocaleString(undefined, {dateStyle:'short',timeStyle:'short'});}
+.header-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.data-group {
+    margin-right: auto; /* Push search to the right */
+}
+.search-group {
+    margin-left: auto; /* Ensures search/help stay right-aligned */
+}
 
-function renderTasks(container, taskArray, allowEditing = true) {
-  container.innerHTML = "";
-  // Placeholder task logic
-  if (taskArray.length === 0 && container.id === 'todoTasks' && searchInput.value === "") {
-    // Only add if no real tasks exist and we are viewing the main board (not search)
-    if (!tasks.filter(t => t.id !== WELCOME_TASK_ID).length) {
-      const placeholderTask = {
-          id: WELCOME_TASK_ID,
-          name: "Welcome to your AI-Kanban!",
-          description: "Click '+ Add Task' (Alt+A) to start. All data is local. Backup often!",
-          priority: "low",
-          tags: ["setup", "guide"],
-          status: "todo",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastMovedAt: null
-      };
-      taskArray.unshift(placeholderTask); // Add to the front
+/* --- Button Styling --- */
+button, .button, .restore-label {
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+button {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+button:hover {
+    background-color: #21262d;
+    border-color: #484f58;
+}
+
+/* Primary Action Button */
+.action-btn {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: var(--bg-color);
+}
+.action-btn:hover {
+    background-color: #2ea043;
+    border-color: #2ea043;
+}
+
+/* Icon Buttons (Privacy, Help) */
+.icon-btn {
+    padding: 8px 12px;
+}
+
+/* Backup/Restore Group specific */
+.restore-label {
+    padding: 0; /* Label is just a container */
+    margin: 0;
+}
+.restore-label button {
+    /* Make the button fill the label space */
+    width: 100%;
+    height: 100%;
+}
+
+/* --- Input and Search Bar --- */
+input[type="search"] {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    width: 250px;
+    transition: border-color 0.2s;
+    font-size: 0.9em;
+}
+input[type="search"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+}
+
+/* Hiding the file input for "Restore" to use the button label */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* --- Kanban Board Layout --- */
+.kanban-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.column {
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+    box-shadow: 0 4px 6px var(--shadow-dark);
+}
+.column h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+/* --- Task Card Styling --- */
+.task {
+    background-color: var(--bg-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px var(--shadow-dark);
+    border-left: 5px solid transparent; /* Used for priority color */
+    cursor: grab;
+    transition: all 0.2s ease;
+    border: 1px solid var(--surface-color);
+}
+.task:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-dark);
+    border-color: #484f58;
+}
+
+.task strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    color: var(--text-color);
+}
+
+.task details {
+    margin: 5px 0 10px;
+    border-top: 1px dotted var(--border-color);
+    padding-top: 5px;
+}
+.task summary {
+    font-size: 0.9em;
+    cursor: pointer;
+    color: #a8dadc;
+    font-weight: 500;
+}
+.task p {
+    font-size: 0.85em;
+    margin-top: 5px;
+    color: #c9d1d9;
+}
+.task div {
+    font-size: 0.85em;
+    margin-bottom: 3px;
+    color: #8b949e;
+}
+
+/* Priority Colors */
+.priority-low { border-left-color: var(--success-color); }
+.priority-medium { border-left-color: var(--warning-color); }
+.priority-major { border-left-color: var(--danger-color); }
+
+/* Tags */
+.tags {
+    margin: 5px 0;
+}
+.tags span {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* Task Buttons */
+.task-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+.task-buttons button, .more-detail-link {
+    padding: 5px 10px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    background-color: #30363d;
+    border: 1px solid #484f58;
+}
+.task-buttons button:hover, .more-detail-link:hover {
+    background-color: #484f58;
+}
+.more-detail-link {
+    display: inline-block;
+    margin-top: 5px;
+}
+
+/* Task Badge (Age/New) */
+.task-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-bottom-left-radius: 4px;
+    font-weight: 700;
+}
+.task { position: relative; } /* Ensure task badge is positioned relative to card */
+.badge-today { background-color: var(--success-color); color: var(--bg-color); }
+.badge-yesterday { background-color: var(--warning-color); color: var(--bg-color); }
+.badge-old { background-color: var(--border-color); color: var(--text-color); }
+
+
+/* --- Forms and Modals (Add/Edit) --- */
+.form-container {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    width: 350px;
+    box-shadow: 0 8px 16px var(--shadow-dark);
+    z-index: 1010; 
+    transition: opacity 0.3s, transform 0.3s;
+}
+.floating-form {
+    position: absolute;
+    top: calc(var(--header-height) + var(--banner-height) + 20px); 
+    left: 20px;
+    transform: translateX(0);
+}
+.floating-form[aria-hidden="true"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+}
+#privacyBanner.hidden + .top-main-bar + #fixedBannerSpacer + .floating-form {
+    top: calc(var(--header-height) + 20px); /* Adjust when banner is hidden */
+}
+
+.form-container label, .modal label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.form-container input:not([type="submit"]), .form-container textarea, .form-container select,
+.modal input:not([type="submit"]), .modal textarea, .modal select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1em;
+}
+.form-container textarea, .modal textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.buttons-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+.save-btn {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--bg-color);
+}
+.save-btn:hover {
+    background-color: #438fec;
+    border-color: #438fec;
+}
+.cancel-btn {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: var(--bg-color);
+}
+.cancel-btn:hover {
+    background-color: #cc423b;
+    border-color: #cc423b;
+}
+
+/* Modal Backdrops and General Modal Styling */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-backdrop.hidden {
+    display: none;
+}
+.modal {
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 25px var(--shadow-dark);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.2em;
+    font-weight: 700;
+}
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+/* --- AI Feedback Box --- */
+.feedback-box {
+    position: fixed;
+    top: calc(var(--header-height) + var(--banner-height) + 10px);
+    right: 20px;
+    padding: 10px 15px;
+    background-color: var(--warning-color);
+    color: var(--bg-color);
+    border-radius: 6px;
+    font-weight: 600;
+    z-index: 1500;
+    box-shadow: 0 2px 5px var(--shadow-dark);
+    transition: opacity 0.3s, transform 0.3s;
+}
+#privacyBanner.hidden + .top-main-bar + #fixedBannerSpacer + .floating-form + .feedback-box {
+    top: calc(var(--header-height) + 10px); /* Adjust when banner is hidden */
+}
+.feedback-box.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
+}
+.feedback-box.success {
+    background-color: var(--success-color);
+}
+
+/* --- Archive Section --- */
+#archiveSection {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+#archiveSection h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+#archiveTasks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* --- Help Modal Overrides --- */
+.modal.large-modal {
+    max-width: 750px;
+}
+.help-content {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 5px;
+    background-color: var(--bg-color);
+    border-radius: 4px;
+}
+.help-content h3, .help-content h4 {
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.help-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+.help-content th, .help-content td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+}
+.help-content th {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+}
+.help-content tr:nth-child(even) {
+    background-color: #0d1117;
+}
+.help-content code {
+    background-color: #30363d;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: #a8dadc;
+    font-weight: 600;
+}
+.help-content strong {
+    color: var(--text-color);
+}
+
+/* Utility Class */
+.shortcut {
+    font-size: 0.75em;
+    margin-left: 5px;
+    padding: 2px 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 900px) {
+    .kanban-container {
+        grid-template-columns: repeat(2, 1fr);
     }
-  }
-
-  taskArray.forEach(task => {
-    const isPlaceholder = task.id === WELCOME_TASK_ID;
-    const div = document.createElement("div");
-    div.className = "task " + PRIORITY_CLASSES[task.priority];
-    div.draggable = allowEditing && !isPlaceholder;
-    div.dataset.id = task.id; div.tabIndex = 0;
+    .top-main-bar {
+        flex-wrap: wrap;
+        height: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    h1 {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .data-group, .search-group {
+        margin: 0;
+        justify-content: center;
+    }
+    .header-group {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+    .search-group input[type="search"] {
+        width: 100%;
+        max-width: 300px;
+    }
     
-    const ageBadge = isPlaceholder ? 'NEW' : getTaskAgeBadge(task.createdAt);
-    const ageClass = isPlaceholder ? 'badge-today' : getTaskAgeClass(task.createdAt);
-    
-    const tagsHtml = task.tags && Array.isArray(task.tags) && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
-    const alarmStr = task.alarmDate ? formatDateTime(task.alarmDate) : "";
-    
-    div.innerHTML = `
-      <div class="task-badge ${ageClass}">${ageBadge || ''}</div>
-      <strong>${escapeHtml(task.name)}</strong>
-      <details><summary>Description</summary><p>${escapeHtml(task.description || "No description")}</p></details>
-      <div><b>Priority:</b> ${task.priority}</div>
-      <div class="tags">${tagsHtml}</div>
-      ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
-      ${isPlaceholder ? '' : `
-        <button class="more-detail-link" type="button">More details</button>
-        <div class="history-details hidden">
-          Created: ${formatDateTime(task.createdAt)}<br/>
-          Edited: ${formatDateTime(task.updatedAt)}<br/>
-          Moved: ${task.lastMovedAt ? formatDateTime(task.lastMovedAt) : 'N/A'}
-        </div>
-        ${allowEditing ? `<div class="task-buttons"><button class="editBtn">Edit</button><button class="deleteBtn">Delete</button></div>` : ""}
-      `}
-    `;
-    container.appendChild(div);
-    
-    if (allowEditing && !isPlaceholder) {
-      div.addEventListener("dragstart", dragStart);
-      div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
-      div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
-      
-      div.querySelector(".more-detail-link").addEventListener("click", function(){
-        let hd = div.querySelector(".history-details");
-        if (hd.classList.contains("hidden")) { hd.classList.remove("hidden"); this.textContent = "Hide details"; }
-        else { hd.classList.add("hidden"); this.textContent = "More details"; }
-      });
+    /* Adjust fixed spacer height for wrapped header */
+    #fixedBannerSpacer {
+        height: 150px; 
     }
-  });
+    #privacyBanner.hidden + .top-main-bar + #fixedBannerSpacer {
+        height: 110px; 
+    }
+    .floating-form {
+        position: static;
+        margin: 20px auto;
+        max-width: 90%;
+        transform: none;
+    }
 }
-function renderBoard() {
-  const now = Date.now(), sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000, filtered = filterTasks(searchInput.value);
-  const activeTasks = filtered.filter(t => t.id !== WELCOME_TASK_ID && new Date(t.createdAt).getTime() > sevenDaysAgo);
-  const archivedTasks = filtered.filter(t => t.id !== WELCOME_TASK_ID && new Date(t.createdAt).getTime() <= sevenDaysAgo);
-  
-  renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
-  renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
-  renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
-  renderTasks(archiveTasksDiv, archivedTasks, false);
-}
-function filterTasks(term) {
-  term = term.trim().toLowerCase();
-  let taskList = tasks.filter(t => t.id !== WELCOME_TASK_ID);
-  if (!term) return taskList;
-  return taskList.filter(t =>
-    t.name.toLowerCase().includes(term) ||
-    (t.description && t.description.toLowerCase().includes(term)) ||
-    (t.tags && Array.isArray(t.tags) && t.tags.some(tag => tag.toLowerCase().includes(term)))
-  );
-}
-// Add form events
-showAddTodoTop.addEventListener("click", () => {
-  addFormTodo.classList.remove("hidden");
-  addFormTodo.setAttribute("aria-hidden", "false");
-  document.getElementById("todoName").value = "";
-  addFormTodo.querySelector("#todoName").focus();
-});
-cancelTodoBtn.addEventListener("click", () => {
-  addFormTodo.classList.add("hidden"); 
-  addFormTodo.setAttribute("aria-hidden", "true"); 
-  clearAddForm();
-});
-function clearAddForm(){
-  document.getElementById("todoName").value = "";
-  document.getElementById("todoDesc").value = "";
-  document.getElementById("todoPriority").value = "medium";
-  document.getElementById("todoAlarm").value = "";
-  document.getElementById("todoTags").value = "";
-}
-addFormTodo.addEventListener("submit", function(e){
-  e.preventDefault();
-  const name = document.getElementById("todoName").value.trim();
-  if (!name) return alert("Task name is required");
-  const desc = document.getElementById("todoDesc").value.trim(),
-    priority = document.getElementById("todoPriority").value,
-    alarmDate = document.getElementById("todoAlarm").value,
-    tags = document.getElementById("todoTags").value.split(",").map(t => t.trim()).filter(Boolean);
-  
-  // Remove placeholder if it exists, ensuring only real tasks are saved
-  tasks = tasks.filter(t => t.id !== WELCOME_TASK_ID); 
-    
-  tasks.push({
-    id: Date.now().toString() + Math.random().toString(36).slice(2),
-    name, description: desc, priority,
-    alarmDate: alarmDate ? new Date(alarmDate).toISOString() : null,
-    tags, status: "todo",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastMovedAt: null
-  });
-  saveTasks(); renderBoard(); clearAddForm();
-  addFormTodo.classList.add("hidden"); 
-  addFormTodo.setAttribute("aria-hidden", "true");
-});
-// Drag and drop
-let draggedTaskId = null;
-function dragStart(event) {
-  draggedTaskId = event.target.dataset.id;
-  if (draggedTaskId === WELCOME_TASK_ID) {
-    event.preventDefault();
-    draggedTaskId = null;
-    return;
-  }
-  event.dataTransfer.setData("text/plain", draggedTaskId);
-  event.dataTransfer.effectAllowed = "move";
-}
-function dragOver(event) { event.preventDefault(); }
-function drop(event) {
-  event.preventDefault();
-  const columnId = event.currentTarget.id; 
-  if (!draggedTaskId) return;
-  const task = tasks.find(t => t.id === draggedTaskId);
-  if (task) {
-    if (columnId === "todoCol") task.status = "todo";
-    else if (columnId === "inprogressCol") task.status = "inprogress";
-    else if (columnId === "doneCol") task.status = "done";
-    task.lastMovedAt = new Date().toISOString();
-    task.updatedAt = task.lastMovedAt;
-    saveTasks(); renderBoard();
-  }
-  draggedTaskId = null;
-}
-["todoCol","inprogressCol","doneCol"].forEach(id=>{
-  const col = document.getElementById(id);
-  col.addEventListener("dragover", dragOver); col.addEventListener("drop", drop);
-});
-function deleteTask(id) {
-  if (!confirm("Are you sure you want to delete this task?")) return;
-  tasks = tasks.filter(t => t.id !== id); 
-  if (tasks.length === 0) { notifiedTaskIds.clear(); } 
-  saveTasks(); 
-  renderBoard();
-}
-// Edit modal
-function openEditModal(id) {
-  editingTaskId = id;
-  const task = tasks.find(t => t.id === id);
-  if (!task || task.id === WELCOME_TASK_ID) return alert("Task not found or cannot be edited");
-  editNameInput.value = task.name;
-  editDescInput.value = task.description || "";
-  editPrioritySelect.value = task.priority;
-  editAlarmInput.value = task.alarmDate ? task.alarmDate.substring(0,16) : "";
-  editTagsInput.value = (task.tags && Array.isArray(task.tags)) ? task.tags.join(", ") : "";
-  editStatusSelect.value = task.status;
-  
-  // Ensure modal is hidden before showing to reset focus trap
-  editModalBackdrop.classList.add("hidden");
-  setTimeout(() => {
-    editModalBackdrop.classList.remove("hidden");
-    editNameInput.focus();
-  },10);
-}
-function closeEditModal() {
-  editingTaskId = null;
-  editModalBackdrop.classList.add("hidden");
-}
-closeEditModalBtn.addEventListener("click", closeEditModal);
-document.getElementById("cancelEdit").addEventListener("click", closeEditModal);
-editModalBackdrop.addEventListener("mousedown", function(e) { if (e.target === this) closeEditModal(); });
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape" && !editModalBackdrop.classList.contains("hidden")) closeEditModal();
-});
-editTaskForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  if (!editingTaskId) return;
-  const task = tasks.find(t => t.id === editingTaskId);
-  if (!task) return alert("Task not found");
-  const name = editNameInput.value.trim();
-  if (!name) return alert("Task name is required");
-  task.name = name;
-  task.description = editDescInput.value.trim();
-  task.priority = editPrioritySelect.value;
-  task.alarmDate = editAlarmInput.value ? new Date(editAlarmInput.value).toISOString() : null;
-  task.tags = editTagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
-  task.status = editStatusSelect.value;
-  task.updatedAt = new Date().toISOString();
-  saveTasks(); renderBoard(); closeEditModal();
-});
-showArchiveBtn.addEventListener("click", () => {
-  archiveSection.classList.remove("hidden");
-  document.querySelector(".kanban-container").classList.add("hidden");
-  showArchiveBtn.setAttribute("aria-expanded", "true");
-  showArchiveBtn.classList.add("hidden");
-  closeArchiveBtn.focus();
-});
-closeArchiveBtn.addEventListener("click", closeArchiveSection);
-function closeArchiveSection() {
-  archiveSection.classList.add("hidden");
-  document.querySelector(".kanban-container").classList.remove("hidden");
-  showArchiveBtn.setAttribute("aria-expanded", "false");
-  showArchiveBtn.classList.remove("hidden");
-  showArchiveBtn.focus();
-}
-searchInput.addEventListener("input", renderBoard);
 
-// Alarm notifications
-function requestNotifications() {
-  if ("Notification" in window) {
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
-  }
+@media (max-width: 600px) {
+    .kanban-container {
+        grid-template-columns: 1fr;
+    }
+    /* Further adjustment for the header spacer on single column layout */
+    #fixedBannerSpacer {
+        height: 180px; 
+    }
+    #privacyBanner.hidden + .top-main-bar + #fixedBannerSpacer {
+        height: 140px; 
+    }
 }
-requestNotifications();
-function showAlarm(title, body) {
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification(title, { body: body });
-  }
-}
-function notifyDueTasks() {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
-  const now = Date.now(), 
-        next5min = now + 5 * 60 * 1000; 
-  
-  tasks.forEach(task => {
-    if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate && task.id !== WELCOME_TASK_ID && !notifiedTaskIds.has(task.id)) {
-      const alarmTime = new Date(task.alarmDate).getTime();
-      
-      if (alarmTime >= now - 5 * 60 * 1000 && alarmTime <= next5min) {
-        showAlarm("Kanban Task Alarm", `${task.name} is due at ${new Date(task.alarmDate).toLocaleTimeString()}`);
-        notifiedTaskIds.add(task.id); 
-      }
-    }
-  });
-}
-setInterval(() => { notifyDueTasks(); }, 5 * 60 * 1000); 
-
-setInterval(() => { saveTasks(); }, 4 * 60 * 60 * 1000);
-
-// Backup/restore
-backupBtn.addEventListener("click", () => {
-  const dataStr = JSON.stringify(tasks.filter(t => t.id !== WELCOME_TASK_ID), null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `kanban-backup-${new Date().toISOString().substring(0,10)}.json`;
-  a.click(); URL.revokeObjectURL(url);
-});
-restoreBtn.addEventListener("click", () => importInput.click());
-importInput.addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (Array.isArray(imported)) {
-        const hasValidTasks = imported.some(item => 
-          typeof item === 'object' && 
-          item !== null && 
-          'name' in item && 
-          'status' in item && 
-          'createdAt' in item
-        );
-        
-        if (hasValidTasks) {
-          // Filter out any potential old WELCOME_TASK_ID from restored data
-          tasks = imported.filter(t => t.id !== WELCOME_TASK_ID); 
-          saveTasks(); 
-          renderBoard();
-          alert("Tasks restored successfully!");
-        } else {
-          alert("Invalid task structure found in the file. Restore failed.");
-        }
-      } else alert("Invalid file format. Expected an array of tasks.");
-    } catch (error) { alert("Error reading file: " + error.message);}
-  };
-  reader.readAsText(file);
-  importInput.value = "";
-});
-document.addEventListener("keydown", function(e){
-  const mod = e.altKey;
-  if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) {
-    if (addFormTodo && !addFormTodo.classList.contains('hidden')) {
-      if (mod && e.key.toLowerCase() === "s") { saveTodoBtn.click(); e.preventDefault(); }
-      else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { cancelTodoBtn.click(); e.preventDefault(); }
-    }
-    if (editModalBackdrop && !editModalBackdrop.classList.contains('hidden')) {
-      if (mod && e.key.toLowerCase() === "s") { editTaskForm.querySelector('button[type="submit"]').click(); e.preventDefault(); }
-      else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { closeEditModal(); e.preventDefault(); }
-    }
-    if (e.key === "/" && document.activeElement !== searchInput) {
-      searchInput.focus(); e.preventDefault();
-    }
-    return;
-  }
-  if      (mod && e.key.toLowerCase() === "a") { showAddTodoTop.click(); e.preventDefault(); }
-  else if (mod && e.key.toLowerCase() === "b") { backupBtn.click(); e.preventDefault(); }
-  else if (mod && e.key.toLowerCase() === "r") { restoreBtn.click(); e.preventDefault(); }
-  else if ((mod && e.key.toLowerCase() === "f") || e.key === "/") { searchInput.focus(); e.preventDefault(); }
-  else if (mod && e.key.toLowerCase() === "v") { showArchiveBtn.click(); e.preventDefault(); }
-  else if (mod && e.key.toLowerCase() === "x") { 
-    if (!archiveSection.classList.contains('hidden')) { closeArchiveSection(); e.preventDefault(); }
-  }
-  if (e.key === "Escape") {
-    if (!addFormTodo.classList.contains('hidden')) cancelTodoBtn.click();
-    if (!archiveSection.classList.contains('hidden')) closeArchiveSection();
-    if (!editModalBackdrop.classList.contains('hidden')) closeEditModal();
-  }
-});
-
-renderBoard();
