@@ -2,7 +2,7 @@
 const privacyBanner = document.getElementById('privacyBanner');
 const dismissPrivacyBtn = document.getElementById('dismissPrivacy');
 const showPrivacyBtn = document.getElementById('showPrivacyBtn');
-const fixedBannerSpacer = document.getElementById('fixedBannerSpacer'); // New Element
+const fixedBannerSpacer = document.getElementById('fixedBannerSpacer');
 
 // Function to dismiss the banner
 function dismissBanner() {
@@ -70,19 +70,23 @@ function formatDateTime(ts) { return (new Date(ts)).toLocaleString(undefined, {d
 
 function renderTasks(container, taskArray, allowEditing = true) {
   container.innerHTML = "";
+  // Placeholder task logic
   if (taskArray.length === 0 && container.id === 'todoTasks' && searchInput.value === "") {
-    const placeholderTask = {
-        id: WELCOME_TASK_ID,
-        name: "Welcome to your AI-Kanban!",
-        description: "Click '+ Add Task' (Alt+A) to start. All data is local. Backup often!",
-        priority: "low",
-        tags: ["setup", "guide"],
-        status: "todo",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastMovedAt: null
-    };
-    taskArray.push(placeholderTask);
+    // Only add if no real tasks exist and we are viewing the main board (not search)
+    if (!tasks.filter(t => t.id !== WELCOME_TASK_ID).length) {
+      const placeholderTask = {
+          id: WELCOME_TASK_ID,
+          name: "Welcome to your AI-Kanban!",
+          description: "Click '+ Add Task' (Alt+A) to start. All data is local. Backup often!",
+          priority: "low",
+          tags: ["setup", "guide"],
+          status: "todo",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastMovedAt: null
+      };
+      taskArray.unshift(placeholderTask); // Add to the front
+    }
   }
 
   taskArray.forEach(task => {
@@ -132,18 +136,19 @@ function renderTasks(container, taskArray, allowEditing = true) {
 }
 function renderBoard() {
   const now = Date.now(), sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000, filtered = filterTasks(searchInput.value);
-  const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
-  const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
+  const activeTasks = filtered.filter(t => t.id !== WELCOME_TASK_ID && new Date(t.createdAt).getTime() > sevenDaysAgo);
+  const archivedTasks = filtered.filter(t => t.id !== WELCOME_TASK_ID && new Date(t.createdAt).getTime() <= sevenDaysAgo);
   
   renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
-  renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress" && t.id !== WELCOME_TASK_ID));
-  renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done" && t.id !== WELCOME_TASK_ID));
+  renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
+  renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
   renderTasks(archiveTasksDiv, archivedTasks, false);
 }
 function filterTasks(term) {
   term = term.trim().toLowerCase();
-  if (!term) return tasks.filter(t => t.id !== WELCOME_TASK_ID);
-  return tasks.filter(t =>
+  let taskList = tasks.filter(t => t.id !== WELCOME_TASK_ID);
+  if (!term) return taskList;
+  return taskList.filter(t =>
     t.name.toLowerCase().includes(term) ||
     (t.description && t.description.toLowerCase().includes(term)) ||
     (t.tags && Array.isArray(t.tags) && t.tags.some(tag => tag.toLowerCase().includes(term)))
@@ -157,7 +162,9 @@ showAddTodoTop.addEventListener("click", () => {
   addFormTodo.querySelector("#todoName").focus();
 });
 cancelTodoBtn.addEventListener("click", () => {
-  addFormTodo.classList.add("hidden"); addFormTodo.setAttribute("aria-hidden", "true"); clearAddForm();
+  addFormTodo.classList.add("hidden"); 
+  addFormTodo.setAttribute("aria-hidden", "true"); 
+  clearAddForm();
 });
 function clearAddForm(){
   document.getElementById("todoName").value = "";
@@ -175,6 +182,7 @@ addFormTodo.addEventListener("submit", function(e){
     alarmDate = document.getElementById("todoAlarm").value,
     tags = document.getElementById("todoTags").value.split(",").map(t => t.trim()).filter(Boolean);
   
+  // Remove placeholder if it exists, ensuring only real tasks are saved
   tasks = tasks.filter(t => t.id !== WELCOME_TASK_ID); 
     
   tasks.push({
@@ -187,7 +195,8 @@ addFormTodo.addEventListener("submit", function(e){
     lastMovedAt: null
   });
   saveTasks(); renderBoard(); clearAddForm();
-  addFormTodo.classList.add("hidden"); addFormTodo.setAttribute("aria-hidden", "true");
+  addFormTodo.classList.add("hidden"); 
+  addFormTodo.setAttribute("aria-hidden", "true");
 });
 // Drag and drop
 let draggedTaskId = null;
@@ -239,8 +248,13 @@ function openEditModal(id) {
   editAlarmInput.value = task.alarmDate ? task.alarmDate.substring(0,16) : "";
   editTagsInput.value = (task.tags && Array.isArray(task.tags)) ? task.tags.join(", ") : "";
   editStatusSelect.value = task.status;
+  
+  // Ensure modal is hidden before showing to reset focus trap
   editModalBackdrop.classList.add("hidden");
-  setTimeout(() => {editModalBackdrop.classList.remove("hidden");editNameInput.focus();},10);
+  setTimeout(() => {
+    editModalBackdrop.classList.remove("hidden");
+    editNameInput.focus();
+  },10);
 }
 function closeEditModal() {
   editingTaskId = null;
@@ -345,7 +359,8 @@ importInput.addEventListener("change", (event) => {
         );
         
         if (hasValidTasks) {
-          tasks = imported; 
+          // Filter out any potential old WELCOME_TASK_ID from restored data
+          tasks = imported.filter(t => t.id !== WELCOME_TASK_ID); 
           saveTasks(); 
           renderBoard();
           alert("Tasks restored successfully!");
