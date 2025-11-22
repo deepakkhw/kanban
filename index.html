@@ -8,18 +8,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-<div id="privacyBadge" tabindex="0" aria-label="Privacy Info">
-  <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;margin-right:5px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
-  <span>Privacy</span>
-  <div id="privacyTooltip" class="hidden">
-    <b>Data Privacy Notice:</b>
-    <br/>All your Kanban board data is <b>only stored locally in your browser.</b><br/>
-    We do <b>not</b> store, backup, sync, or collect any data—your board is <b>private and personal</b>.<br/>
-    <b>Backup regularly</b> so you never lose your tasks.
-  </div>
+
+<div id="privacyBanner" class="fixed-banner">
+    <p>
+        <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;margin-right:5px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
+        <b>Data Privacy Notice:</b> All your Kanban board data is <b>only stored locally in your browser.</b> We do <b>not</b> store, backup, sync, or collect any data—your board is private and personal. <b>Backup regularly</b> so you never lose your tasks.
+    </p>
+    <button id="dismissPrivacy" type="button">&times;</button>
 </div>
+
 <h1>Kanban Board</h1>
+
 <div class="topbar-flex">
+  <button id="showPrivacyBtn" type="button" aria-label="Show Privacy Notice">
+      <svg width="16" height="16" viewBox="0 0 20 20" style="vertical-align:-3px;margin-right:5px;"><circle cx="10" cy="10" r="9" fill="#6fd0fa"/><text x="10" y="16" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a354d">i</text></svg>
+      Privacy
+  </button>
   <button id="showAddTodoTop" type="button" aria-label="Add (Alt+A)">+ Add Task <span class="shortcut">Alt+A</span></button>
   <button id="backupBtn" type="button" aria-label="Backup (Alt+B)">Backup <span class="shortcut">Alt+B</span></button>
   <button id="restoreBtn" type="button" aria-label="Restore (Alt+R)">Restore <span class="shortcut">Alt+R</span></button>
@@ -27,6 +31,7 @@
   <input type="file" id="importInput" accept="application/json" />
   <input type="search" id="searchInput" placeholder="Search..." aria-label="Search tasks..." title="Alt+F or / to focus" />
 </div>
+
 <form id="addFormTodo" class="form-container hidden" aria-hidden="true" tabindex="-1" autocomplete="off">
   <label>Task Name<input type="text" id="todoName" required /></label>
   <label>Description<textarea id="todoDesc" spellcheck="true"></textarea></label>
@@ -44,16 +49,19 @@
     <button type="button" id="cancelTodo"><u>C</u>ancel <span class="shortcut">Alt+C</span></button>
   </div>
 </form>
+
 <div class="kanban-container" aria-label="Kanban board columns">
   <div class="column" id="todoCol"><h3>To-Do</h3><div id="todoTasks"></div></div>
   <div class="column" id="inprogressCol"><h3>In Progress</h3><div id="inprogressTasks"></div></div>
   <div class="column" id="doneCol"><h3>Done</h3><div id="doneTasks"></div></div>
 </div>
+
 <section id="archiveSection" class="hidden">
   <h2>Archive (tasks older than 7 days)</h2>
   <div id="archiveTasks"></div>
   <button id="closeArchive"><u>X</u> Close <span class="shortcut">Alt+X / Esc</span></button>
 </section>
+
 <div id="editModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" tabindex="-1">
   <div class="modal">
     <div class="modal-header">
