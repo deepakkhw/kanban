@@ -604,3 +604,30 @@ input[type="search"]:focus {
         height: 140px; 
     }
 }
+/* Add this rule to the end of your style.css file */
+.hidden {
+    display: none !important;
+}
+
+/* Optional: Make the More Details button look cleaner */
+.more-detail-link {
+    background: none;
+    border: none;
+    color: var(--accent-color); /* Assuming you have a variable for a light blue/accent color */
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 5px;
+    font-size: 0.85em;
+    display: block; /* Ensures it starts on a new line */
+}
+
+/* Adjust task description details/summary spacing if needed */
+.task-description summary {
+    cursor: pointer;
+}
+.task-description p {
+    margin: 5px 0 0;
+    padding-left: 10px;
+    font-size: 0.9em;
+}
