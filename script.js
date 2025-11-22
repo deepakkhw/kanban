@@ -1,32 +1,30 @@
-// NEW IDEA: Dismissible Privacy Banner Logic
+// NEW: Spacer element control
 const privacyBanner = document.getElementById('privacyBanner');
 const dismissPrivacyBtn = document.getElementById('dismissPrivacy');
 const showPrivacyBtn = document.getElementById('showPrivacyBtn');
-const h1Element = document.querySelector('h1');
+const fixedBannerSpacer = document.getElementById('fixedBannerSpacer'); // New Element
 
 // Function to dismiss the banner
 function dismissBanner() {
     privacyBanner.classList.add('hidden');
     localStorage.setItem('privacyBannerDismissed', 'true');
-    // Remove the temporary padding class to reset H1 margin
-    h1Element.classList.remove('banner-visible-margin');
+    fixedBannerSpacer.classList.remove('visible'); // Hide spacer
 }
 
 // Function to show the banner
 function showBanner() {
     privacyBanner.classList.remove('hidden');
     localStorage.removeItem('privacyBannerDismissed'); // Reset dismissal flag
-    // Add the temporary padding class to push H1 down
-    h1Element.classList.add('banner-visible-margin');
+    fixedBannerSpacer.classList.add('visible'); // Show spacer
 }
 
-// Initial check on load: Use CSS classes instead of inline style assignment
+// Initial check on load
 if (localStorage.getItem('privacyBannerDismissed') === 'true') {
     privacyBanner.classList.add('hidden');
-    h1Element.classList.remove('banner-visible-margin');
+    fixedBannerSpacer.classList.remove('visible');
 } else {
     privacyBanner.classList.remove('hidden');
-    h1Element.classList.add('banner-visible-margin');
+    fixedBannerSpacer.classList.add('visible');
 }
 
 
