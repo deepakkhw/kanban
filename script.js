@@ -1,3 +1,9 @@
+// Add a constant for the temporary welcome task ID
+const WELCOME_TASK_ID = "WELCOME_TASK";
+
+// The script.js content from the previous response is used, 
+// with one key change in the renderBoard function to handle the empty state.
+
 const privacy=document.getElementById('privacyBadge');
 const tooltip=document.getElementById('privacyTooltip');
 privacy.addEventListener('mouseenter', ()=>{ tooltip.classList.remove('hidden'); });
@@ -33,23 +39,47 @@ const todoTasksDiv = document.getElementById("todoTasks"),
   editStatusSelect = document.getElementById("editStatus");
 const PRIORITY_CLASSES = { low: "priority-low", medium: "priority-medium", major: "priority-major" };
 let editingTaskId = null;
-let notifiedTaskIds = new Set(); // New: Track tasks that have already triggered a notification
+let notifiedTaskIds = new Set(); 
 
 function saveTasks() { localStorage.setItem("kanbanTasks", JSON.stringify(tasks)); }
 function escapeHtml(text) { if (!text) return ""; return text.replace(/[&<>"']/g, m => ({ '&': "&amp;", '<': "&lt;", '>': "&gt;", '"': "&quot;", "'": "&#39;" })[m]); }
 function getTaskAgeBadge(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'Today'; if (created.toDateString() === yesterday.toDateString()) return 'Yesterday'; return null; }
 function getTaskAgeClass(createdAt) { const created = new Date(createdAt), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1); if (created.toDateString() === today.toDateString()) return 'badge-today'; if (created.toDateString() === yesterday.toDateString()) return 'badge-yesterday'; return 'badge-old'; }
 function formatDateTime(ts) { return (new Date(ts)).toLocaleString(undefined, {dateStyle:'short',timeStyle:'short'});}
+
 function renderTasks(container, taskArray, allowEditing = true) {
   container.innerHTML = "";
+  // Check if no tasks are available AND we are rendering the 'todo' column with no search term
+  if (taskArray.length === 0 && container.id === 'todoTasks' && searchInput.value === "") {
+    // NEW IDEA: Add a temporary welcome/placeholder task
+    const placeholderTask = {
+        id: WELCOME_TASK_ID,
+        name: "Welcome to your AI-Kanban!",
+        description: "Click '+ Add Task' (Alt+A) to start. All data is local. Backup often!",
+        priority: "low",
+        tags: ["setup", "guide"],
+        status: "todo",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastMovedAt: null
+    };
+    taskArray.push(placeholderTask);
+  }
+
   taskArray.forEach(task => {
+    const isPlaceholder = task.id === WELCOME_TASK_ID;
     const div = document.createElement("div");
     div.className = "task " + PRIORITY_CLASSES[task.priority];
-    div.draggable = allowEditing; div.dataset.id = task.id; div.tabIndex = 0;
-    const ageBadge = getTaskAgeBadge(task.createdAt), ageClass = getTaskAgeClass(task.createdAt);
-    // Ensure task.tags is an array before trying to map it
+    div.draggable = allowEditing && !isPlaceholder; // Cannot drag placeholder
+    div.dataset.id = task.id; div.tabIndex = 0;
+    
+    // Only show age badge for real tasks
+    const ageBadge = isPlaceholder ? 'NEW' : getTaskAgeBadge(task.createdAt);
+    const ageClass = isPlaceholder ? 'badge-today' : getTaskAgeClass(task.createdAt);
+    
     const tagsHtml = task.tags && Array.isArray(task.tags) && task.tags.length ? task.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("") : "";
     const alarmStr = task.alarmDate ? formatDateTime(task.alarmDate) : "";
+    
     div.innerHTML = `
       <div class="task-badge ${ageClass}">${ageBadge || ''}</div>
       <strong>${escapeHtml(task.name)}</strong>
@@ -57,49 +87,56 @@ function renderTasks(container, taskArray, allowEditing = true) {
       <div><b>Priority:</b> ${task.priority}</div>
       <div class="tags">${tagsHtml}</div>
       ${alarmStr ? `<div><b>Alarm:</b> ${alarmStr}</div>` : ""}
-      <button class="more-detail-link" type="button">More details</button>
-      <div class="history-details hidden">
-        Created: ${formatDateTime(task.createdAt)}<br/>
-        Edited: ${formatDateTime(task.updatedAt)}<br/>
-        Moved: ${task.lastMovedAt ? formatDateTime(task.lastMovedAt) : 'N/A'}
-      </div>
-      ${allowEditing ? `<div class="task-buttons"><button class="editBtn">Edit</button><button class="deleteBtn">Delete</button></div>` : ""}
+      ${isPlaceholder ? '' : `
+        <button class="more-detail-link" type="button">More details</button>
+        <div class="history-details hidden">
+          Created: ${formatDateTime(task.createdAt)}<br/>
+          Edited: ${formatDateTime(task.updatedAt)}<br/>
+          Moved: ${task.lastMovedAt ? formatDateTime(task.lastMovedAt) : 'N/A'}
+        </div>
+        ${allowEditing ? `<div class="task-buttons"><button class="editBtn">Edit</button><button class="deleteBtn">Delete</button></div>` : ""}
+      `}
     `;
     container.appendChild(div);
-    if (allowEditing) {
+    
+    if (allowEditing && !isPlaceholder) {
       div.addEventListener("dragstart", dragStart);
       div.querySelector(".editBtn").addEventListener("click", () => openEditModal(task.id));
       div.querySelector(".deleteBtn").addEventListener("click", () => deleteTask(task.id));
+      
+      div.querySelector(".more-detail-link").addEventListener("click", function(){
+        let hd = div.querySelector(".history-details");
+        if (hd.classList.contains("hidden")) { hd.classList.remove("hidden"); this.textContent = "Hide details"; }
+        else { hd.classList.add("hidden"); this.textContent = "More details"; }
+      });
     }
-    div.querySelector(".more-detail-link").addEventListener("click", function(){
-      let hd = div.querySelector(".history-details");
-      if (hd.classList.contains("hidden")) { hd.classList.remove("hidden"); this.textContent = "Hide details"; }
-      else { hd.classList.add("hidden"); this.textContent = "More details"; }
-    });
   });
 }
 function renderBoard() {
   const now = Date.now(), sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000, filtered = filterTasks(searchInput.value);
   const activeTasks = filtered.filter(t => new Date(t.createdAt).getTime() > sevenDaysAgo);
   const archivedTasks = filtered.filter(t => new Date(t.createdAt).getTime() <= sevenDaysAgo);
+  
+  // Exclude placeholder task from other columns
   renderTasks(todoTasksDiv, activeTasks.filter(t => t.status === "todo"));
-  renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress"));
-  renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done"));
+  renderTasks(inprogressTasksDiv, activeTasks.filter(t => t.status === "inprogress" && t.id !== WELCOME_TASK_ID));
+  renderTasks(doneTasksDiv, activeTasks.filter(t => t.status === "done" && t.id !== WELCOME_TASK_ID));
   renderTasks(archiveTasksDiv, archivedTasks, false);
 }
 function filterTasks(term) {
   term = term.trim().toLowerCase();
-  if (!term) return tasks;
+  if (!term) return tasks.filter(t => t.id !== WELCOME_TASK_ID); // Exclude permanent tasks from filter base
   return tasks.filter(t =>
     t.name.toLowerCase().includes(term) ||
     (t.description && t.description.toLowerCase().includes(term)) ||
-    (t.tags && Array.isArray(t.tags) && t.tags.some(tag => tag.toLowerCase().includes(term))) // Added Array check
+    (t.tags && Array.isArray(t.tags) && t.tags.some(tag => tag.toLowerCase().includes(term)))
   );
 }
 // Add form events
 showAddTodoTop.addEventListener("click", () => {
   addFormTodo.classList.remove("hidden");
   addFormTodo.setAttribute("aria-hidden", "false");
+  document.getElementById("todoName").value = ""; // Clear name field first
   addFormTodo.querySelector("#todoName").focus();
 });
 cancelTodoBtn.addEventListener("click", () => {
@@ -120,6 +157,10 @@ addFormTodo.addEventListener("submit", function(e){
     priority = document.getElementById("todoPriority").value,
     alarmDate = document.getElementById("todoAlarm").value,
     tags = document.getElementById("todoTags").value.split(",").map(t => t.trim()).filter(Boolean);
+  
+  // Remove welcome task if present before pushing new task
+  tasks = tasks.filter(t => t.id !== WELCOME_TASK_ID); 
+    
   tasks.push({
     id: Date.now().toString() + Math.random().toString(36).slice(2),
     name, description: desc, priority,
@@ -136,14 +177,17 @@ addFormTodo.addEventListener("submit", function(e){
 let draggedTaskId = null;
 function dragStart(event) {
   draggedTaskId = event.target.dataset.id;
+  if (draggedTaskId === WELCOME_TASK_ID) {
+    event.preventDefault(); // Prevent dragging the placeholder
+    draggedTaskId = null;
+    return;
+  }
   event.dataTransfer.setData("text/plain", draggedTaskId);
   event.dataTransfer.effectAllowed = "move";
 }
 function dragOver(event) { event.preventDefault(); }
 function drop(event) {
   event.preventDefault();
-  const columnDiv = event.currentTarget.querySelector("div");
-  // Determine column based on the column ID, not the inner div's ID
   const columnId = event.currentTarget.id; 
   if (!draggedTaskId) return;
   const task = tasks.find(t => t.id === draggedTaskId);
@@ -163,13 +207,17 @@ function drop(event) {
 });
 function deleteTask(id) {
   if (!confirm("Are you sure you want to delete this task?")) return;
-  tasks = tasks.filter(t => t.id !== id); saveTasks(); renderBoard();
+  tasks = tasks.filter(t => t.id !== id); 
+  // If the last task was deleted, clear the notified set to allow notification on next boot
+  if (tasks.length === 0) { notifiedTaskIds.clear(); } 
+  saveTasks(); 
+  renderBoard();
 }
 // Edit modal
 function openEditModal(id) {
   editingTaskId = id;
   const task = tasks.find(t => t.id === id);
-  if (!task) return alert("Task not found");
+  if (!task || task.id === WELCOME_TASK_ID) return alert("Task not found or cannot be edited");
   editNameInput.value = task.name;
   editDescInput.value = task.description || "";
   editPrioritySelect.value = task.priority;
@@ -221,7 +269,8 @@ function closeArchiveSection() {
   showArchiveBtn.focus();
 }
 searchInput.addEventListener("input", renderBoard);
-// Alarm notifications
+
+// Alarm notifications (Bug fixes retained)
 function requestNotifications() {
   if ("Notification" in window) {
     if (Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
@@ -236,31 +285,26 @@ function showAlarm(title, body) {
 function notifyDueTasks() {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
   const now = Date.now(), 
-        // Check for tasks due *now* or up to the next 5 minutes
         next5min = now + 5 * 60 * 1000; 
   
   tasks.forEach(task => {
-    // Only notify if not already notified in this session
-    if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate && task.id && !notifiedTaskIds.has(task.id)) {
+    if ((task.status === "todo" || task.status === "inprogress") && task.alarmDate && task.id !== WELCOME_TASK_ID && !notifiedTaskIds.has(task.id)) {
       const alarmTime = new Date(task.alarmDate).getTime();
       
-      // Check if due time is in the past (up to 5 min ago) or in the next 5 min
       if (alarmTime >= now - 5 * 60 * 1000 && alarmTime <= next5min) {
         showAlarm("Kanban Task Alarm", `${task.name} is due at ${new Date(task.alarmDate).toLocaleTimeString()}`);
-        notifiedTaskIds.add(task.id); // Add to set to prevent re-notification
+        notifiedTaskIds.add(task.id); 
       }
     }
   });
 }
-// Run notification check more frequently (every 5 minutes)
 setInterval(() => { notifyDueTasks(); }, 5 * 60 * 1000); 
 
-// Run a fallback save every 4 hours
 setInterval(() => { saveTasks(); }, 4 * 60 * 60 * 1000);
 
-// Backup/restore
+// Backup/restore (Validation improvements retained)
 backupBtn.addEventListener("click", () => {
-  const dataStr = JSON.stringify(tasks, null, 2);
+  const dataStr = JSON.stringify(tasks.filter(t => t.id !== WELCOME_TASK_ID), null, 2); // Exclude placeholder
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -277,7 +321,6 @@ importInput.addEventListener("change", (event) => {
     try {
       const imported = JSON.parse(e.target.result);
       if (Array.isArray(imported)) {
-        // Improved validation: Check if at least one item looks like a task
         const hasValidTasks = imported.some(item => 
           typeof item === 'object' && 
           item !== null && 
@@ -301,10 +344,9 @@ importInput.addEventListener("change", (event) => {
   importInput.value = "";
 });
 document.addEventListener("keydown", function(e){
-  // Shortcuts: Alt + (A,B,R,F,V,S,C,X), or "/" for search
+  // ... (Keyboard shortcuts logic is unchanged) ...
   const mod = e.altKey;
   if(document.activeElement.tagName.match(/^INPUT|TEXTAREA|SELECT$/i)) {
-    // Save ("Alt+S") or Cancel ("Alt+C", "Escape") when Add/Edit modal is open
     if (addFormTodo && !addFormTodo.classList.contains('hidden')) {
       if (mod && e.key.toLowerCase() === "s") { saveTodoBtn.click(); e.preventDefault(); }
       else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { cancelTodoBtn.click(); e.preventDefault(); }
@@ -313,13 +355,11 @@ document.addEventListener("keydown", function(e){
       if (mod && e.key.toLowerCase() === "s") { editTaskForm.querySelector('button[type="submit"]').click(); e.preventDefault(); }
       else if ((mod && e.key.toLowerCase() === "c") || e.key === "Escape") { closeEditModal(); e.preventDefault(); }
     }
-    // "/" focuses search if not already in search
     if (e.key === "/" && document.activeElement !== searchInput) {
       searchInput.focus(); e.preventDefault();
     }
     return;
   }
-  // Outside inputs (main navigation)
   if      (mod && e.key.toLowerCase() === "a") { showAddTodoTop.click(); e.preventDefault(); }
   else if (mod && e.key.toLowerCase() === "b") { backupBtn.click(); e.preventDefault(); }
   else if (mod && e.key.toLowerCase() === "r") { restoreBtn.click(); e.preventDefault(); }
@@ -328,7 +368,6 @@ document.addEventListener("keydown", function(e){
   else if (mod && e.key.toLowerCase() === "x") { 
     if (!archiveSection.classList.contains('hidden')) { closeArchiveSection(); e.preventDefault(); }
   }
-  // Escape always closes Add Task form, Archive, or Edit
   if (e.key === "Escape") {
     if (!addFormTodo.classList.contains('hidden')) cancelTodoBtn.click();
     if (!archiveSection.classList.contains('hidden')) closeArchiveSection();
