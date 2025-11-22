@@ -8,25 +8,25 @@ const h1Element = document.querySelector('h1');
 function dismissBanner() {
     privacyBanner.classList.add('hidden');
     localStorage.setItem('privacyBannerDismissed', 'true');
-    h1Element.style.marginTop = '22px'; // Adjust H1 margin up when banner is hidden
+    // Remove the temporary padding class to reset H1 margin
+    h1Element.classList.remove('banner-visible-margin');
 }
 
 // Function to show the banner
 function showBanner() {
     privacyBanner.classList.remove('hidden');
     localStorage.removeItem('privacyBannerDismissed'); // Reset dismissal flag
-    h1Element.style.marginTop = '50px'; // Adjust H1 margin down when banner is visible
+    // Add the temporary padding class to push H1 down
+    h1Element.classList.add('banner-visible-margin');
 }
 
-// Initial check on load
+// Initial check on load: Use CSS classes instead of inline style assignment
 if (localStorage.getItem('privacyBannerDismissed') === 'true') {
-    // If dismissed, hide banner and adjust H1 margin immediately
     privacyBanner.classList.add('hidden');
-    h1Element.style.marginTop = '22px';
+    h1Element.classList.remove('banner-visible-margin');
 } else {
-    // If not dismissed, show banner and adjust H1 margin
     privacyBanner.classList.remove('hidden');
-    h1Element.style.marginTop = '50px';
+    h1Element.classList.add('banner-visible-margin');
 }
 
 
